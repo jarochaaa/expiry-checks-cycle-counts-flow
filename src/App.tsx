@@ -4,14 +4,14 @@ import { ScanModal } from './components/ScanModal';
 import { AssignSheet, SendSheet } from './components/Sheets';
 import { TaskBanner } from './components/TaskBanner';
 import { Toast } from './components/ui';
-import { LOC_ORDER, PRODUCTS } from './data';
+import { LOC_ORDER } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { TaskList } from './screens/TaskList';
 import { PRESETS, initialState, reducer } from './state';
 import { taskFor } from './tasks';
 
-const SKUS = Object.keys(PRODUCTS).length;
+const SKUS = LOC_ORDER.length;
 const SEND_MS = 1400;
 
 export default function App() {

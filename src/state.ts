@@ -59,7 +59,7 @@ export const initialState: State = {
   sending: false,
   tab: 'todo',
   locs: Object.fromEntries(LOC_ORDER.map((id) => [id, emptyLoc()])) as Record<LocId, LocState>,
-  recount: { sita: false, salt: false, chao: false },
+  recount: { sita: false, burine: false },
   recountFirst: {},
   banner: false,
   discrepancies: 0,
@@ -250,14 +250,13 @@ const todo: Action = { type: 'tab', tab: 'todo' };
 // Reaching a given point of the flow, as the tester would
 const S1: Action[] = [...START, ...count('sita1', '6'), todo];
 const S2: Action[] = [...S1, ...count('sita2', '4'), todo];
-const S3: Action[] = [...S2, ...count('salt1', '12'), todo];
-const S5: Action[] = [...S3, ...count('chao1', '8'), todo];
-const RC1: Action[] = [...S5, ...oos('chao2')]; // discrepancy: Chao Tuoi back to recount, banner on the list
-const RC2: Action[] = [...RC1, ...oos('chao2'), todo]; // recount of Chao 2 (out of stock again)
-const RC3: Action[] = [...RC2, ...count('chao1', '8'), todo];
-const SALT: Action[] = [...RC3, ...count('salt2', '8')]; // Salt discrepancy appears inside the modal
-const SALT2: Action[] = [...SALT, { type: 'type', value: '8' }, { type: 'submit' }, todo];
-const ALL: Action[] = [...SALT2, ...count('salt1', '12')];
+const ALL: Action[] = [...S2, ...count('burine', '30')];
+// Out of Stock on the last SKU → discrepancy banner on the list, recount
+const RC1: Action[] = [...S2, ...oos('burine')];
+const RC2: Action[] = [...RC1, ...oos('burine'), todo]; // recount: out of stock again
+const RCALL: Action[] = [...RC1, ...count('burine', '30')];
+// Wrong total typed on the last SKU → discrepancy shown inside the modal
+const DM: Action[] = [...S2, ...entered('burine', '25'), { type: 'submit' }];
 
 const P = (group: string, id: string, label: string, actions: Action[]): Preset => ({ id, group, label, actions });
 
@@ -276,44 +275,25 @@ export const PRESETS: Preset[] = [
   P('Scanning / Main', 'sita2-typing', 'Sita 2 · typing', [...S1, ...typing('sita2')]),
   P('Scanning / Main', 'sita2-entered', 'Sita 2 · quantity entered', [...S1, ...entered('sita2', '4')]),
   P('Scanning / Main', 'sita2-processed', 'Processed · 2 items', [...S1, ...count('sita2', '4')]),
-  P('Scanning / Main', 'salt1-todo', 'To be processed · Salt 1', S2),
-  P('Scanning / Main', 'salt1-open', 'Salt 1 · scanned', [...S2, ...scan('salt1')]),
-  P('Scanning / Main', 'salt1-typing', 'Salt 1 · typing', [...S2, ...typing('salt1')]),
-  P('Scanning / Main', 'salt1-entered', 'Salt 1 · quantity entered', [...S2, ...entered('salt1', '12')]),
-  P('Scanning / Main', 'salt1-processed', 'Processed · Salt 1 (Counting)', [...S2, ...count('salt1', '12')]),
-  P('Scanning / Main', 'chao1-todo', 'To be processed · Chao Tuoi 1', S3),
-  P('Scanning / Main', 'chao1-open', 'Chao Tuoi 1 · scanned', [...S3, ...scan('chao1')]),
-  P('Scanning / Main', 'chao1-typing', 'Chao Tuoi 1 · typing', [...S3, ...typing('chao1')]),
-  P('Scanning / Main', 'chao1-entered', 'Chao Tuoi 1 · quantity entered', [...S3, ...entered('chao1', '8')]),
-  P('Scanning / Main', 'chao1-processed', 'Processed · Chao Tuoi 1 (Counting)', [...S3, ...count('chao1', '8')]),
-  P('Scanning / Main', 'chao2-todo', 'To be processed · Chao Tuoi 2 + Salt 2', S5),
+  P('Scanning / Main', 'burine-todo', 'To be processed · Burine (single location)', S2),
+  P('Scanning / Main', 'burine-open', 'Burine · scanned', [...S2, ...scan('burine')]),
+  P('Scanning / Main', 'burine-typing', 'Burine · typing', [...S2, ...typing('burine')]),
+  P('Scanning / Main', 'burine-entered', 'Burine · quantity entered', [...S2, ...entered('burine', '30')]),
 
   P('Alerts', 'alert-network', 'Scan failed · no connection', [...START, { type: 'alert', text: ALERTS.network }]),
   P('Alerts', 'alert-wrong', 'Wrong product scanned', [...S1, { type: 'alert', text: ALERTS.wrong }]),
   P('Alerts', 'alert-complete', 'Complete failed · connection', [...ALL, { type: 'alert', text: ALERTS.error }]),
   P('Alerts', 'alert-send', 'Send failed · connection', [...ALL, { type: 'complete' }, { type: 'alert', text: ALERTS.error }]),
 
-  P('Discrepancy & recount', 'chao2-swipe', 'Chao Tuoi 2 · swiped (Out of Stock)', [...S5, { type: 'swipe', loc: 'chao2' }]),
-  P('Discrepancy & recount', 'chao-banner', 'Stock Discrepancy · banner on list', RC1),
-  P('Discrepancy & recount', 'chao2-swipe2', 'Recount · Chao Tuoi 2 swiped again', [...RC1, { type: 'swipe', loc: 'chao2' }]),
-  P('Discrepancy & recount', 'chao2-processed', 'Processed · Chao Tuoi 2 recount (00)', [...RC1, ...oos('chao2')]),
-  P('Discrepancy & recount', 'chao1-recount', 'To be processed · Chao Tuoi 1 recount', RC2),
-  P('Discrepancy & recount', 'chao1-rc-open', 'Chao Tuoi 1 recount · scanned', [...RC2, ...scan('chao1')]),
-  P('Discrepancy & recount', 'chao1-rc-typing', 'Chao Tuoi 1 recount · typing', [...RC2, ...typing('chao1')]),
-  P('Discrepancy & recount', 'chao1-rc-entered', 'Chao Tuoi 1 recount · quantity entered', [...RC2, ...entered('chao1', '8')]),
-  P('Discrepancy & recount', 'chao-rc-processed', 'Processed · Chao Tuoi recounted', [...RC2, ...count('chao1', '8')]),
-  P('Discrepancy & recount', 'salt2-todo', 'To be processed · Salt 2 left', RC3),
-  P('Discrepancy & recount', 'salt2-open', 'Salt 2 · scanned', [...RC3, ...scan('salt2')]),
-  P('Discrepancy & recount', 'salt2-typing', 'Salt 2 · typing', [...RC3, ...typing('salt2')]),
-  P('Discrepancy & recount', 'salt2-entered', 'Salt 2 · quantity entered', [...RC3, ...entered('salt2', '8')]),
-  P('Discrepancy & recount', 'salt2-discrepancy', 'Stock Discrepancy · inside the modal', [...RC3, ...entered('salt2', '8'), { type: 'submit' }]),
-  P('Discrepancy & recount', 'salt2-rc-typing', 'Salt 2 recount · typing', [...SALT, { type: 'type', value: '' }]),
-  P('Discrepancy & recount', 'salt2-rc-entered', 'Salt 2 recount · quantity entered', [...SALT, { type: 'type', value: '8' }]),
-  P('Discrepancy & recount', 'salt2-rc-processed', 'Processed · Salt 2 recount', [...SALT, { type: 'type', value: '8' }, { type: 'submit' }]),
-  P('Discrepancy & recount', 'salt1-rc-todo', 'To be processed · Salt 1 recount', SALT2),
-  P('Discrepancy & recount', 'salt1-rc-open', 'Salt 1 recount · scanned', [...SALT2, ...scan('salt1')]),
-  P('Discrepancy & recount', 'salt1-rc-typing', 'Salt 1 recount · typing', [...SALT2, ...typing('salt1')]),
-  P('Discrepancy & recount', 'salt1-rc-entered', 'Salt 1 recount · quantity entered', [...SALT2, ...entered('salt1', '12')]),
+  P('Discrepancy & recount', 'burine-swipe', 'Burine · swiped (Out of Stock)', [...S2, { type: 'swipe', loc: 'burine' }]),
+  P('Discrepancy & recount', 'burine-banner', 'Stock Discrepancy · banner on list', RC1),
+  P('Discrepancy & recount', 'burine-swipe2', 'Recount · Burine swiped again', [...RC1, { type: 'swipe', loc: 'burine' }]),
+  P('Discrepancy & recount', 'burine-rc-processed', 'Processed · Burine recount (00)', RC2.slice(0, -1)),
+  P('Discrepancy & recount', 'burine-rc-open', 'Burine recount · scanned', [...RC1, ...scan('burine')]),
+  P('Discrepancy & recount', 'burine-rc-entered', 'Burine recount · quantity entered', [...RC1, ...entered('burine', '30')]),
+  P('Discrepancy & recount', 'burine-rc-done', 'All processed · after recount', RCALL),
+  P('Discrepancy & recount', 'burine-dm', 'Stock Discrepancy · inside the modal', DM),
+  P('Discrepancy & recount', 'burine-dm-typing', 'Modal recount · quantity entered', [...DM, { type: 'type', value: '30' }]),
 
   P('End', 'all-done', 'All processed · Complete', ALL),
   P('End', 'send', 'Send inventory count', [...ALL, { type: 'complete' }]),
