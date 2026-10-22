@@ -1,0 +1,117 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overscroll-behavior: none;
+}
+
+body {
+  background: transparent; /* blend with the browser's own background */
+  color: var(--text-primary);
+  font: 400 14px/1.2 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: inherit;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+p,
+h1,
+h2 {
+  margin: 0;
+}
+
+img {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* ---------- App frame: fluid on phones, centered device-like column on wider screens ---------- */
+.stage {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  background: var(--banner); /* task banner colour; shows behind the view's rounded top corners */
+  border-radius: var(--radius-card);
+  color-scheme: dark;
+  overflow: hidden;
+  overscroll-behavior: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Phones: full-bleed. Anything wider: a Pixel-sized 412 x 917 device column. */
+@media (min-width: 600px) {
+  .app {
+    width: 412px;
+    height: min(917px, calc(100dvh - 48px));
+    border: 1px solid var(--border-card);
+  }
+}
+
+/* The dark view under the task banner: rounded top corners over the orange strip. */
+.app__view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-app);
+  border-radius: var(--radius-card) var(--radius-card) var(--radius-card) var(--radius-card);
+  overflow: hidden;
+}
+
+.screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.screen-enter {
+  animation: screen-enter 180ms ease-out;
+}
+
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter {
+    animation: none;
+  }
+}
