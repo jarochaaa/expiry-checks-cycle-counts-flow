@@ -59,7 +59,7 @@ export const initialState: State = {
   sending: false,
   tab: 'todo',
   locs: Object.fromEntries(LOC_ORDER.map((id) => [id, emptyLoc()])) as Record<LocId, LocState>,
-  recount: { sita: false, salt: false, burine: false, chao: false },
+  recount: { sita: false, salt: false, chao: false },
   recountFirst: {},
   banner: false,
   discrepancies: 0,
@@ -251,8 +251,7 @@ const todo: Action = { type: 'tab', tab: 'todo' };
 const S1: Action[] = [...START, ...count('sita1', '6'), todo];
 const S2: Action[] = [...S1, ...count('sita2', '4'), todo];
 const S3: Action[] = [...S2, ...count('salt1', '12'), todo];
-const S4: Action[] = [...S3, ...count('burine', '30'), todo];
-const S5: Action[] = [...S4, ...count('chao1', '8'), todo];
+const S5: Action[] = [...S3, ...count('chao1', '8'), todo];
 const RC1: Action[] = [...S5, ...oos('chao2')]; // discrepancy: Chao Tuoi back to recount, banner on the list
 const RC2: Action[] = [...RC1, ...oos('chao2'), todo]; // recount of Chao 2 (out of stock again)
 const RC3: Action[] = [...RC2, ...count('chao1', '8'), todo];
@@ -282,16 +281,11 @@ export const PRESETS: Preset[] = [
   P('Scanning / Main', 'salt1-typing', 'Salt 1 · typing', [...S2, ...typing('salt1')]),
   P('Scanning / Main', 'salt1-entered', 'Salt 1 · quantity entered', [...S2, ...entered('salt1', '12')]),
   P('Scanning / Main', 'salt1-processed', 'Processed · Salt 1 (Counting)', [...S2, ...count('salt1', '12')]),
-  P('Scanning / Main', 'burine-todo', 'To be processed · Burine', S3),
-  P('Scanning / Main', 'burine-open', 'Burine · scanned', [...S3, ...scan('burine')]),
-  P('Scanning / Main', 'burine-typing', 'Burine · typing', [...S3, ...typing('burine')]),
-  P('Scanning / Main', 'burine-entered', 'Burine · quantity entered', [...S3, ...entered('burine', '30')]),
-  P('Scanning / Main', 'burine-processed', 'Processed · Burine', [...S3, ...count('burine', '30')]),
-  P('Scanning / Main', 'chao1-todo', 'To be processed · Chao Tuoi 1', S4),
-  P('Scanning / Main', 'chao1-open', 'Chao Tuoi 1 · scanned', [...S4, ...scan('chao1')]),
-  P('Scanning / Main', 'chao1-typing', 'Chao Tuoi 1 · typing', [...S4, ...typing('chao1')]),
-  P('Scanning / Main', 'chao1-entered', 'Chao Tuoi 1 · quantity entered', [...S4, ...entered('chao1', '8')]),
-  P('Scanning / Main', 'chao1-processed', 'Processed · Chao Tuoi 1 (Counting)', [...S4, ...count('chao1', '8')]),
+  P('Scanning / Main', 'chao1-todo', 'To be processed · Chao Tuoi 1', S3),
+  P('Scanning / Main', 'chao1-open', 'Chao Tuoi 1 · scanned', [...S3, ...scan('chao1')]),
+  P('Scanning / Main', 'chao1-typing', 'Chao Tuoi 1 · typing', [...S3, ...typing('chao1')]),
+  P('Scanning / Main', 'chao1-entered', 'Chao Tuoi 1 · quantity entered', [...S3, ...entered('chao1', '8')]),
+  P('Scanning / Main', 'chao1-processed', 'Processed · Chao Tuoi 1 (Counting)', [...S3, ...count('chao1', '8')]),
   P('Scanning / Main', 'chao2-todo', 'To be processed · Chao Tuoi 2 + Salt 2', S5),
 
   P('Alerts', 'alert-network', 'Scan failed · no connection', [...START, { type: 'alert', text: ALERTS.network }]),
