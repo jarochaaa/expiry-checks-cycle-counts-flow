@@ -1,13 +1,13 @@
 import { useEffect, useReducer } from 'react';
 import { DetailModal } from './components/DetailModal';
-import { ScanModal } from './components/ScanModal';
-import { AssignSheet, SendSheet } from './components/Sheets';
+import { SendSheet, StartSheet } from './components/Sheets';
 import { TaskBanner } from './components/TaskBanner';
 import { Toast } from './components/ui';
-import { LOC_ORDER } from './data';
+import { LOC_BY_ID, LOC_ORDER } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
-import { TaskList } from './screens/TaskList';
+import { Audits } from './screens/Audits';
+import { PdpScreen } from './screens/Pdp';
 import { PRESETS, codeFor, initialState, reducer } from './state';
 import { taskFor } from './tasks';
 
@@ -30,8 +30,6 @@ export default function App() {
     const t = setTimeout(() => dispatch({ type: 'sent' }), SEND_MS);
     return () => clearTimeout(t);
   }, [s.sending]);
-
-  const doneCount = LOC_ORDER.filter((id) => s.locs[id].done).length;
 
   return (
     <div className="stage">
@@ -56,13 +54,13 @@ export default function App() {
         <TaskBanner task={taskFor(s)} code={codeFor(s)} />
 
         <div className="app__view">
-          {s.screen === 'tasks' && <TaskList doneCount={doneCount} dispatch={dispatch} />}
+          {s.screen === 'audits' && <Audits tab={s.auditsTab} dispatch={dispatch} />}
           {s.screen === 'skus' && <SkuList s={s} dispatch={dispatch} />}
-          {s.screen === 'summary' && <Summary skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}
+          {s.screen === 'summary' && <Summary taskId={s.taskId} skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}
 
-          {s.sheet === 'assign' && <AssignSheet dispatch={dispatch} />}
-          {s.sheet === 'send' && <SendSheet skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}
-          {s.scan && <ScanModal s={s} dispatch={dispatch} />}
+          {s.sheet === 'start' && <StartSheet taskId={s.taskId} dispatch={dispatch} />}
+          {s.sheet === 'send' && <SendSheet taskId={s.taskId} skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}
+          {s.pdp && <PdpScreen pdp={s.pdp} recount={s.recount[LOC_BY_ID[s.pdp.loc].product]} hintClosed={s.hintClosed} dispatch={dispatch} />}
           {s.detail && <DetailModal product={s.detail} dispatch={dispatch} />}
           {s.sending && (
             <div className="spinner-wrap" role="status" aria-label="Sending">

@@ -1,0 +1,12 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="101" height="3" viewBox="0 0 101 3" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Divider">
+<g clip-path="url(#clip0_0_5752)">
+<path id="Line" d="M0 1.5H101" stroke-width="3" stroke="white"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_0_5752">
+<path d="M0 3C0 1.34315 1.34315 0 3 0H98C99.6569 0 101 1.34315 101 3V3H0V3Z" fill="white"/>
+</clipPath>
+</defs>
+</svg>

@@ -22,8 +22,10 @@ export function LocationCard({
   const loc = LOC_BY_ID[id];
   const p = PRODUCTS[loc.product];
   const t = p.thumb;
+  const batches = done ? done.batches.filter((b) => b.qty > 0) : [];
   return (
     <article className={cx('card', loc.multi ? 'card--multi' : 'card--single', done && 'card--done')}>
+     <div className="card__top">
       <div className="card__scan" />
       <div className="card__info" />
       <div className="card__content">
@@ -56,6 +58,16 @@ export function LocationCard({
           <img src={icons.tripHeader} alt="" />
           Product on Multiple Locations
         </div>
+      )}
+     </div>
+     {batches.length > 0 && (
+        <ul className="card__batches" aria-label="Expiry dates">
+          {batches.map((b) => (
+            <li key={b.date} className="ptag ptag--batch">
+              {b.date} · {b.qty}
+            </li>
+          ))}
+        </ul>
       )}
     </article>
   );

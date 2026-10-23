@@ -1,5 +1,5 @@
 import type { Dispatch } from 'react';
-import { LOC_BY_ID, TASK_ID } from '../data';
+import { LOC_BY_ID } from '../data';
 import type { LocId, ProductId } from '../data';
 import { allDone, doneLocs, pendingLocs, pillFor } from '../state';
 import type { Action, State } from '../state';
@@ -16,7 +16,7 @@ export function SkuList({ s, dispatch }: { s: State; dispatch: Dispatch<Action> 
 
   return (
     <div className="screen screen-enter">
-      <Header title={TASK_ID} onBack={() => dispatch({ type: 'back' })} />
+      <Header title={s.taskId} onBack={() => dispatch({ type: 'back' })} />
       <div className="tabs" role="tablist">
         <button type="button" role="tab" aria-selected={todoTab} aria-label="To be processed" className="tabs__tab" onClick={() => dispatch({ type: 'tab', tab: 'todo' })}>
           <img src={icons.tabTodo} alt="" />

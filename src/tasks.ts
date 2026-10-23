@@ -23,8 +23,8 @@ const t = (n: number): Task => ({ n, detail: COPY.detail, description: COPY.desc
 
 /**
  * Banner step for the view the tester is looking at.
- *   1  task list
- *   2  "Assign to me?" sheet
+ *   1  Audits (Count / Removal tasks)
+ *   2  "Do you want to start this task?" sheet
  *   3+ SKU list / scan modal: 3 + every count or out-of-stock action done so far (recounts included),
  *      so it never repeats and never skips, whichever card the tester picks
  *   +1 "Send" sheet and the sending spinner
@@ -32,7 +32,7 @@ const t = (n: number): Task => ({ n, detail: COPY.detail, description: COPY.desc
  */
 export function stepFor(s: State): number {
   const list = 3 + s.events;
-  if (s.screen === 'tasks') return s.sheet === 'assign' ? 2 : 1;
+  if (s.screen === 'audits') return s.sheet === 'start' ? 2 : 1;
   if (s.screen === 'summary') return list + 2;
   if (s.sheet === 'send' || s.sending) return list + 1;
   return list;

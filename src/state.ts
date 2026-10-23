@@ -1,8 +1,9 @@
-import { LOC_BY_ID, LOC_ORDER, PRODUCTS, productLocs } from './data';
-import type { LocId, ProductId } from './data';
+import { LOC_BY_ID, LOC_ORDER, PRODUCTS, batchTotal, defaultBatches, fmtDate, productLocs } from './data';
+import type { Batch, LocId, ProductId } from './data';
 
 export type Tab = 'todo' | 'done';
-export type Screen = 'tasks' | 'skus' | 'summary';
+export type Screen = 'audits' | 'skus' | 'summary';
+export type AuditsTab = 'count' | 'removal';
 export type Pill = 'counting' | 'recount' | null;
 
 export interface LocState {
@@ -11,14 +12,22 @@ export interface LocState {
   oos: boolean;
   /** processing order, newest = highest (drives the Processed tab order) */
   seq: number;
+  /** expiry-date batches counted at this location (kept, zeroed, when the product goes back to recount) */
+  batches: Batch[];
 }
 
-export interface Scan {
+export type PdpSheet =
+  | null
+  | { kind: 'qty'; date: string; isNew: boolean; value: string }
+  | { kind: 'calendar'; viewY: number; viewM: number; y: number; m: number; d: number };
+
+/** Product detail page of a location: one card per expiry date. */
+export interface Pdp {
   loc: LocId;
-  focused: boolean;
-  value: string;
-  /** Stock Discrepancy banner shown inside the modal (recount "starting with this one") */
+  batches: Batch[];
+  /** Stock Discrepancy banner (a recount that starts on this very location) */
   banner: boolean;
+  sheet: PdpSheet;
 }
 
 export interface Alert {
@@ -28,7 +37,10 @@ export interface Alert {
 
 export interface State {
   screen: Screen;
-  sheet: null | 'assign' | 'send';
+  auditsTab: AuditsTab;
+  /** task the tester picked on the Audits list */
+  taskId: string;
+  sheet: null | 'start' | 'send';
   sending: boolean;
   tab: Tab;
   locs: Record<LocId, LocState>;
@@ -40,7 +52,9 @@ export interface State {
   banner: boolean;
   /** how many products ever triggered a discrepancy (red chip on the summary) */
   discrepancies: number;
-  scan: Scan | null;
+  pdp: Pdp | null;
+  /** "How to check Expiry Dates" hint closed */
+  hintClosed: boolean;
   detail: ProductId | null;
   /** location whose card is slid open to reveal "Out of Stock" */
   swipe: LocId | null;
@@ -51,10 +65,13 @@ export interface State {
   alertId: number;
 }
 
-const emptyLoc = (): LocState => ({ done: false, count: 0, oos: false, seq: 0 });
+const emptyLoc = (): LocState => ({ done: false, count: 0, oos: false, seq: 0, batches: defaultBatches() });
+const zeroed = (b: Batch[]): Batch[] => b.map((x) => ({ ...x, qty: 0 }));
 
 export const initialState: State = {
-  screen: 'tasks',
+  screen: 'audits',
+  auditsTab: 'count',
+  taskId: '67890',
   sheet: null,
   sending: false,
   tab: 'todo',
@@ -63,7 +80,8 @@ export const initialState: State = {
   recountFirst: {},
   banner: false,
   discrepancies: 0,
-  scan: null,
+  pdp: null,
+  hintClosed: false,
   detail: null,
   swipe: null,
   alert: null,
@@ -73,16 +91,24 @@ export const initialState: State = {
 };
 
 export type Action =
-  | { type: 'openTask' }
+  | { type: 'auditsTab'; tab: AuditsTab }
+  | { type: 'openTicket'; id: string }
   | { type: 'closeSheet' }
   | { type: 'start' }
   | { type: 'back' }
   | { type: 'tab'; tab: Tab }
   | { type: 'scan'; loc: LocId }
-  | { type: 'focus' }
-  | { type: 'type'; value: string }
-  | { type: 'closeScan' }
-  | { type: 'submit' }
+  | { type: 'pdpBack' }
+  | { type: 'closeHint' }
+  | { type: 'openQty'; date: string }
+  | { type: 'qtyType'; value: string }
+  | { type: 'qtyDone' }
+  | { type: 'openCalendar' }
+  | { type: 'calSelect'; y: number; m: number; d: number }
+  | { type: 'calMonth'; delta: number }
+  | { type: 'calApply' }
+  | { type: 'sheetCancel' }
+  | { type: 'confirm' }
   | { type: 'swipe'; loc: LocId | null }
   | { type: 'oos'; loc: LocId }
   | { type: 'detail'; product: ProductId | null }
@@ -134,10 +160,10 @@ const productTotal = (s: State, p: ProductId) => productLocs(p).reduce((n, l) =>
 
 /**
  * A location was just counted (or marked out of stock). If it completed a product for the first time and the
- * units don't match what the system expects, the whole product goes back to recount. `viaModal` keeps the
- * modal open on the location that triggered it ("starting with this one").
+ * units don't match what the system expects, the whole product goes back to recount. `viaPdp` keeps the
+ * product page open on the location that triggered it ("starting with this one").
  */
-function afterCount(s: State, loc: LocId, viaModal: boolean): State {
+function afterCount(s: State, loc: LocId, viaPdp: boolean): State {
   const p = LOC_BY_ID[loc].product;
   if (s.recount[p]) {
     // recount finished for this product → pills disappear, discrepancy resolved
@@ -146,54 +172,93 @@ function afterCount(s: State, loc: LocId, viaModal: boolean): State {
   }
   if (productComplete(s, p) && productTotal(s, p) !== PRODUCTS[p].expected) {
     const locs = { ...s.locs };
-    for (const l of productLocs(p)) locs[l] = emptyLoc();
+    for (const l of productLocs(p)) locs[l] = { ...emptyLoc(), batches: zeroed(s.locs[l].batches) };
     return {
       ...s,
       locs,
       recount: { ...s.recount, [p]: true },
       recountFirst: { ...s.recountFirst, [p]: loc },
       discrepancies: s.discrepancies + 1,
-      banner: !viaModal,
+      banner: !viaPdp,
       tab: 'todo',
-      scan: viaModal ? { loc, focused: true, value: '', banner: true } : null,
+      pdp: viaPdp ? { loc, batches: locs[loc].batches, banner: true, sheet: null } : null,
     };
   }
   return { ...s, tab: 'done' };
 }
 
+const withSheet = (s: State, sheet: PdpSheet): State => (s.pdp ? { ...s, pdp: { ...s.pdp, sheet } } : s);
+
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
-    case 'openTask':
-      return { ...s, sheet: 'assign' };
+    case 'auditsTab':
+      return { ...s, auditsTab: a.tab };
+    case 'openTicket':
+      return { ...s, taskId: a.id, sheet: 'start' };
     case 'closeSheet':
       return { ...s, sheet: null };
     case 'start':
       return { ...s, sheet: null, screen: 'skus', tab: 'todo' };
     case 'back':
-      return { ...s, screen: 'tasks', sheet: null, scan: null, detail: null, swipe: null, alert: null };
+      return { ...s, screen: 'audits', sheet: null, pdp: null, detail: null, swipe: null, alert: null };
     case 'tab':
       return { ...s, tab: a.tab, swipe: null };
     case 'scan':
-      return { ...s, scan: { loc: a.loc, focused: false, value: '', banner: false }, swipe: null, alert: null };
-    case 'focus':
-      return s.scan ? { ...s, scan: { ...s.scan, focused: true } } : s;
-    case 'type': {
-      if (!s.scan) return s;
-      const value = a.value.replace(/\D/g, '').slice(0, 5);
-      return { ...s, scan: { ...s.scan, focused: true, value, banner: false } };
+      return { ...s, pdp: { loc: a.loc, batches: s.locs[a.loc].batches.map((b) => ({ ...b })), banner: false, sheet: null }, swipe: null, alert: null };
+    case 'pdpBack':
+      return { ...s, pdp: null };
+    case 'closeHint':
+      return { ...s, hintClosed: true };
+    case 'openQty': {
+      if (!s.pdp) return s;
+      const cur = s.pdp.batches.find((b) => b.date === a.date);
+      return withSheet(s, { kind: 'qty', date: a.date, isNew: false, value: cur && cur.qty ? String(cur.qty) : '' });
     }
-    case 'closeScan':
-      return { ...s, scan: null };
-    case 'submit': {
-      if (!s.scan || !s.scan.value) return s;
-      const { loc, value } = s.scan;
+    case 'qtyType': {
+      const sh = s.pdp?.sheet;
+      if (!sh || sh.kind !== 'qty') return s;
+      return withSheet(s, { ...sh, value: a.value.replace(/\D/g, '').slice(0, 5) });
+    }
+    case 'qtyDone': {
+      const sh = s.pdp?.sheet;
+      if (!s.pdp || !sh || sh.kind !== 'qty') return s;
+      const qty = sh.value ? parseInt(sh.value, 10) : 0;
+      const exists = s.pdp.batches.some((b) => b.date === sh.date);
+      const batches = exists ? s.pdp.batches.map((b) => (b.date === sh.date ? { ...b, qty } : b)) : [...s.pdp.batches, { date: sh.date, qty }];
+      return { ...s, pdp: { ...s.pdp, batches, banner: false, sheet: null } };
+    }
+    case 'openCalendar':
+      return withSheet(s, { kind: 'calendar', viewY: 2026, viewM: 7, y: 2026, m: 7, d: 17 });
+    case 'calSelect': {
+      const sh = s.pdp?.sheet;
+      if (!sh || sh.kind !== 'calendar') return s;
+      return withSheet(s, { ...sh, y: a.y, m: a.m, d: a.d });
+    }
+    case 'calMonth': {
+      const sh = s.pdp?.sheet;
+      if (!sh || sh.kind !== 'calendar') return s;
+      const t = sh.viewY * 12 + sh.viewM + a.delta;
+      return withSheet(s, { ...sh, viewY: Math.floor(t / 12), viewM: ((t % 12) + 12) % 12 });
+    }
+    case 'calApply': {
+      const sh = s.pdp?.sheet;
+      if (!sh || sh.kind !== 'calendar') return s;
+      const date = fmtDate(sh.y, sh.m, sh.d);
+      const cur = s.pdp!.batches.find((b) => b.date === date);
+      return withSheet(s, { kind: 'qty', date, isNew: !cur, value: cur && cur.qty ? String(cur.qty) : '' });
+    }
+    case 'sheetCancel':
+      return withSheet(s, null);
+    case 'confirm': {
+      if (!s.pdp || s.pdp.sheet || batchTotal(s.pdp.batches) === 0) return s;
+      const { loc, batches } = s.pdp;
       const seq = s.seq + 1;
       const next: State = {
         ...s,
-        scan: null,
+        pdp: null,
         events: s.events + 1,
         seq,
-        locs: { ...s.locs, [loc]: { done: true, count: parseInt(value, 10), oos: false, seq } },
+        locs: { ...s.locs, [loc]: { done: true, count: batchTotal(batches), oos: false, seq, batches } },
       };
       return afterCount(next, loc, true);
     }
@@ -206,7 +271,7 @@ export function reducer(s: State, a: Action): State {
         swipe: null,
         events: s.events + 1,
         seq,
-        locs: { ...s.locs, [a.loc]: { done: true, count: 0, oos: true, seq } },
+        locs: { ...s.locs, [a.loc]: { done: true, count: 0, oos: true, seq, batches: zeroed(s.locs[a.loc].batches) } },
       };
       return afterCount(next, a.loc, false);
     }
@@ -241,71 +306,83 @@ export interface Preset {
   actions: Action[];
 }
 
-const START: Action[] = [{ type: 'openTask' }, { type: 'start' }];
+const D1 = '12.12.2027';
+const D2 = '21.11.2027';
+const START: Action[] = [{ type: 'openTicket', id: '67890' }, { type: 'start' }];
 const scan = (loc: LocId): Action[] => [{ type: 'scan', loc }];
-const typing = (loc: LocId): Action[] => [...scan(loc), { type: 'focus' }];
-const entered = (loc: LocId, v: string): Action[] => [...typing(loc), { type: 'type', value: v }];
-const count = (loc: LocId, v: string): Action[] => [...entered(loc, v), { type: 'submit' }];
+const qty = (date: string, v: string): Action[] => [{ type: 'openQty', date }, { type: 'qtyType', value: v }, { type: 'qtyDone' }];
+const filled = (loc: LocId, a: string, b: string): Action[] => [...scan(loc), ...qty(D1, a), ...qty(D2, b)];
+const fill = (loc: LocId, a: string, b: string): Action[] => [...filled(loc, a, b), { type: 'confirm' }];
 const oos = (loc: LocId): Action[] => [{ type: 'swipe', loc }, { type: 'oos', loc }];
 const todo: Action = { type: 'tab', tab: 'todo' };
+const newBatch: Action[] = [{ type: 'openCalendar' }, { type: 'calApply' }];
 
-// Reaching a given point of the flow, as the tester would
-const S1: Action[] = [...START, ...count('sita1', '6'), todo];
-const S2: Action[] = [...S1, ...count('sita2', '4'), todo];
-const ALL: Action[] = [...S2, ...count('burine', '30')];
+// Reaching a given point of the flow, as the tester would (Sita expects 10 units, Burine 30)
+const S1: Action[] = [...START, ...fill('sita1', '4', '2'), todo];
+const S2: Action[] = [...S1, ...fill('sita2', '3', '1'), todo];
+const ALL: Action[] = [...S2, ...fill('burine', '20', '10')];
 // Out of Stock on the last SKU → discrepancy banner on the list, recount
 const RC1: Action[] = [...S2, ...oos('burine')];
-const RC2: Action[] = [...RC1, ...oos('burine'), todo]; // recount: out of stock again
-const RCALL: Action[] = [...RC1, ...count('burine', '30')];
-// Wrong total typed on the last SKU → discrepancy shown inside the modal
-const DM: Action[] = [...S2, ...entered('burine', '25'), { type: 'submit' }];
+// Wrong total typed on the last SKU → discrepancy shown on the product page itself
+const DM: Action[] = [...S2, ...filled('burine', '15', '10'), { type: 'confirm' }];
 
-const CODES: Record<string, string> = {"tasks": "A1", "assign": "A2", "skus": "B1", "sita2-todo": "B2", "burine-todo": "B3", "burine-swipe": "B4", "burine-banner": "B5", "burine-swipe2": "B6", "alert-network": "B7", "alert-wrong": "B8", "sita1-processed": "C1", "sita2-processed": "C2", "burine-rc-processed": "C3", "burine-rc-done": "C4", "all-done": "C5", "alert-complete": "C6", "sita1-open": "D1", "sita1-typing": "D2", "sita1-entered": "D3", "sita2-open": "D4", "sita2-typing": "D5", "sita2-entered": "D6", "burine-open": "D7", "burine-typing": "D8", "burine-entered": "D9", "burine-rc-open": "D10", "burine-rc-entered": "D11", "burine-dm": "D12", "burine-rc-typing": "D14", "detail": "E1", "send": "F1", "alert-send": "F2", "loading": "G1", "summary": "H1"};
-const TITLES: Record<string, string> = {"A": "Task list", "B": "SKU list · To be processed", "C": "SKU list · Processed", "D": "Scan modal", "E": "Product details", "F": "Send sheet", "G": "Sending", "H": "Summary"};
-const P = (_group: string, id: string, label: string, actions: Action[]): Preset => {
+const CODES: Record<string, string> = {
+  'audits': 'A1', 'removal': 'A2', 'start': 'B1',
+  'skus': 'C1', 'sita2-todo': 'C2', 'burine-todo': 'C3', 'burine-swipe': 'C4', 'burine-banner': 'C5', 'burine-swipe2': 'C6', 'alert-network': 'C7', 'alert-wrong': 'C8',
+  'processed-1': 'D1', 'processed-2': 'D2', 'processed-oos': 'D3', 'processed-recount': 'D4', 'all-done': 'D5', 'alert-complete': 'D6',
+  'pdp-initial': 'E1', 'pdp-hint-closed': 'E2', 'pdp-entered': 'E3', 'pdp-new-batch': 'E4', 'pdp-recount': 'E5', 'pdp-discrepancy': 'E6',
+  'qty-empty': 'F1', 'qty-entered': 'F2', 'qty-new-empty': 'F3', 'qty-new-entered': 'F4',
+  'calendar': 'G1', 'detail': 'H1', 'send': 'I1', 'alert-send': 'I2', 'loading': 'J1', 'summary': 'K1',
+};
+const TITLES: Record<string, string> = {
+  A: 'Audits', B: 'Start task sheet', C: 'SKU list · To be processed', D: 'SKU list · Checked', E: 'Product page · expiry batches',
+  F: 'Quantity sheet', G: 'Expiry date calendar', H: 'Product image', I: 'Send sheet', J: 'Sending', K: 'Summary',
+};
+const P = (id: string, label: string, actions: Action[]): Preset => {
   const code = CODES[id];
   return { id, code, group: `${code[0]} · ${TITLES[code[0]]}`, label, actions };
 };
 
 const RAW: Preset[] = [
-  P('Entry', 'tasks', 'Task list', []),
-  P('Entry', 'assign', 'Assign to me?', [{ type: 'openTask' }]),
-  P('Entry', 'skus', 'SKU list · nothing counted', START),
-  P('Entry', 'detail', 'Product image tapped', [...START, { type: 'detail', product: 'sita' }]),
+  P('audits', 'Count Tasks · Cycle Count', []),
+  P('removal', 'Removal Tasks', [{ type: 'auditsTab', tab: 'removal' }]),
+  P('start', 'Do you want to start this task?', [{ type: 'openTicket', id: '67890' }]),
 
-  P('Scanning / Main', 'sita1-open', 'Sita 1 · scanned (expiry date)', [...START, ...scan('sita1')]),
-  P('Scanning / Main', 'sita1-typing', 'Sita 1 · typing', [...START, ...typing('sita1')]),
-  P('Scanning / Main', 'sita1-entered', 'Sita 1 · quantity entered', [...START, ...entered('sita1', '6')]),
-  P('Scanning / Main', 'sita1-processed', 'Processed · 1 item', [...START, ...count('sita1', '6')]),
-  P('Scanning / Main', 'sita2-todo', 'To be processed · Sita 2 on top', S1),
-  P('Scanning / Main', 'sita2-open', 'Sita 2 · scanned (Counting)', [...S1, ...scan('sita2')]),
-  P('Scanning / Main', 'sita2-typing', 'Sita 2 · typing', [...S1, ...typing('sita2')]),
-  P('Scanning / Main', 'sita2-entered', 'Sita 2 · quantity entered', [...S1, ...entered('sita2', '4')]),
-  P('Scanning / Main', 'sita2-processed', 'Processed · 2 items', [...S1, ...count('sita2', '4')]),
-  P('Scanning / Main', 'burine-todo', 'To be processed · Burine (single location)', S2),
-  P('Scanning / Main', 'burine-open', 'Burine · scanned', [...S2, ...scan('burine')]),
-  P('Scanning / Main', 'burine-typing', 'Burine · typing', [...S2, ...typing('burine')]),
-  P('Scanning / Main', 'burine-entered', 'Burine · quantity entered', [...S2, ...entered('burine', '30')]),
+  P('skus', 'Nothing counted', START),
+  P('sita2-todo', 'Sita 2 on top (Counting)', S1),
+  P('burine-todo', 'Burine only (single location)', S2),
+  P('burine-swipe', 'Burine swiped (Out of Stock)', [...S2, { type: 'swipe', loc: 'burine' }]),
+  P('burine-banner', 'Stock Discrepancy · banner on list', RC1),
+  P('burine-swipe2', 'Recount · Burine swiped again', [...RC1, { type: 'swipe', loc: 'burine' }]),
+  P('alert-network', 'Scan failed · no connection', [...START, { type: 'alert', text: ALERTS.network }]),
+  P('alert-wrong', 'Wrong product scanned', [...S1, { type: 'alert', text: ALERTS.wrong }]),
 
-  P('Alerts', 'alert-network', 'Scan failed · no connection', [...START, { type: 'alert', text: ALERTS.network }]),
-  P('Alerts', 'alert-wrong', 'Wrong product scanned', [...S1, { type: 'alert', text: ALERTS.wrong }]),
-  P('Alerts', 'alert-complete', 'Complete failed · connection', [...ALL, { type: 'alert', text: ALERTS.error }]),
-  P('Alerts', 'alert-send', 'Send failed · connection', [...ALL, { type: 'complete' }, { type: 'alert', text: ALERTS.error }]),
+  P('processed-1', 'Checked · 1 item', S1.slice(0, -1)),
+  P('processed-2', 'Checked · 2 items', S2.slice(0, -1)),
+  P('processed-oos', 'Checked · Burine recount out of stock (00)', [...RC1, ...oos('burine')]),
+  P('processed-recount', 'Checked · all, after a real recount', [...RC1, ...fill('burine', '20', '10')]),
+  P('all-done', 'Checked · all, Complete enabled', ALL),
+  P('alert-complete', 'Complete failed · connection', [...ALL, { type: 'alert', text: ALERTS.error }]),
 
-  P('Discrepancy & recount', 'burine-swipe', 'Burine · swiped (Out of Stock)', [...S2, { type: 'swipe', loc: 'burine' }]),
-  P('Discrepancy & recount', 'burine-banner', 'Stock Discrepancy · banner on list', RC1),
-  P('Discrepancy & recount', 'burine-swipe2', 'Recount · Burine swiped again', [...RC1, { type: 'swipe', loc: 'burine' }]),
-  P('Discrepancy & recount', 'burine-rc-processed', 'Processed · Burine recount (00)', RC2.slice(0, -1)),
-  P('Discrepancy & recount', 'burine-rc-open', 'Burine recount · scanned', [...RC1, ...scan('burine')]),
-  P('Discrepancy & recount', 'burine-rc-typing', 'Burine recount · typing', [...RC1, ...typing('burine')]),
-  P('Discrepancy & recount', 'burine-rc-entered', 'Burine recount · quantity entered', [...RC1, ...entered('burine', '30')]),
-  P('Discrepancy & recount', 'burine-rc-done', 'All processed · after recount', RCALL),
-  P('Discrepancy & recount', 'burine-dm', 'Stock Discrepancy · inside the modal', DM),
+  P('pdp-initial', 'Sita 1 · first open (hint, 0 / 0)', [...START, ...scan('sita1')]),
+  P('pdp-hint-closed', 'Sita 1 · hint closed', [...START, ...scan('sita1'), { type: 'closeHint' }]),
+  P('pdp-entered', 'Sita 1 · quantities entered', [...START, ...filled('sita1', '4', '2'), { type: 'closeHint' }]),
+  P('pdp-new-batch', 'Sita 1 · new batch added', [...START, ...scan('sita1'), { type: 'closeHint' }, ...qty(D1, '4'), ...qty(D2, '2'), ...newBatch, { type: 'qtyType', value: '3' }, { type: 'qtyDone' }]),
+  P('pdp-recount', 'Burine · recount (Recount tag, 0 / 0)', [...RC1, ...scan('burine'), { type: 'closeHint' }]),
+  P('pdp-discrepancy', 'Stock Discrepancy · on the product page', DM),
 
-  P('End', 'all-done', 'All processed · Complete', ALL),
-  P('End', 'send', 'Send inventory count', [...ALL, { type: 'complete' }]),
-  P('End', 'loading', 'Sending…', [...ALL, { type: 'complete' }, { type: 'send' }]),
-  P('End', 'summary', 'Task completed · summary', [...ALL, { type: 'complete' }, { type: 'send' }, { type: 'sent' }]),
+  P('qty-empty', 'Quantity sheet · empty', [...START, ...scan('sita1'), { type: 'closeHint' }, { type: 'openQty', date: D1 }]),
+  P('qty-entered', 'Quantity sheet · value typed', [...START, ...scan('sita1'), { type: 'closeHint' }, { type: 'openQty', date: D1 }, { type: 'qtyType', value: '4' }]),
+  P('qty-new-empty', 'Quantity sheet · new batch, empty', [...START, ...scan('sita1'), { type: 'closeHint' }, ...newBatch]),
+  P('qty-new-entered', 'Quantity sheet · new batch, value typed', [...START, ...scan('sita1'), { type: 'closeHint' }, ...newBatch, { type: 'qtyType', value: '3' }]),
+
+  P('calendar', 'Which expiry date you want to capture?', [...START, ...scan('sita1'), { type: 'closeHint' }, { type: 'openCalendar' }]),
+  P('detail', 'Product image tapped', [...START, { type: 'detail', product: 'sita' }]),
+
+  P('send', 'Send inventory count', [...ALL, { type: 'complete' }]),
+  P('alert-send', 'Send failed · connection', [...ALL, { type: 'complete' }, { type: 'alert', text: ALERTS.error }]),
+  P('loading', 'Sending…', [...ALL, { type: 'complete' }, { type: 'send' }]),
+  P('summary', 'Task completed · summary', [...ALL, { type: 'complete' }, { type: 'send' }, { type: 'sent' }]),
 ];
 
 const codeKey = (c: string) => c.charCodeAt(0) * 100 + parseInt(c.slice(1), 10);
@@ -316,30 +393,31 @@ export const PRESETS: Preset[] = [...RAW].sort((a, b) => codeKey(a.code) - codeK
  * never drops out during free play. Keep in sync with CODES above.
  */
 export function codeFor(s: State): string {
-  if (s.screen === 'tasks') return s.sheet === 'assign' ? 'A2' : 'A1';
-  if (s.screen === 'summary') return 'H1';
-  if (s.sending) return 'G1';
-  if (s.sheet === 'send') return s.alert ? 'F2' : 'F1';
-  if (s.detail) return 'E1';
-  if (s.scan) {
-    const { loc, focused, value, banner } = s.scan;
-    const step = value ? 2 : focused ? 1 : 0; // 0 scanned · 1 typing · 2 quantity entered
-    if (loc === 'sita1') return `D${1 + step}`;
-    if (loc === 'sita2') return `D${4 + step}`;
-    if (banner) return 'D12';
-    if (s.recount.burine) return ['D10', 'D14', 'D11'][step];
-    return `D${7 + step}`;
+  if (s.screen === 'summary') return 'K1';
+  if (s.sending) return 'J1';
+  if (s.sheet === 'send') return s.alert ? 'I2' : 'I1';
+  if (s.detail) return 'H1';
+  if (s.screen === 'audits') return s.sheet === 'start' ? 'B1' : s.auditsTab === 'removal' ? 'A2' : 'A1';
+  if (s.pdp) {
+    const { sheet, batches, banner, loc } = s.pdp;
+    if (sheet?.kind === 'calendar') return 'G1';
+    if (sheet?.kind === 'qty') return sheet.isNew ? (sheet.value ? 'F4' : 'F3') : sheet.value ? 'F2' : 'F1';
+    if (banner) return 'E6';
+    if (s.recount[LOC_BY_ID[loc].product]) return 'E5';
+    if (batches.length > 2) return 'E4';
+    if (batchTotal(batches) > 0) return 'E3';
+    return s.hintClosed ? 'E2' : 'E1';
   }
   const done = LOC_ORDER.filter((id) => s.locs[id].done);
   if (s.tab === 'done') {
-    if (s.alert) return 'C6';
-    if (s.locs.burine.oos) return 'C3';
-    if (allDone(s)) return s.discrepancies > 0 ? 'C4' : 'C5';
-    return done.length >= 2 ? 'C2' : 'C1';
+    if (s.alert) return 'D6';
+    if (s.locs.burine.oos) return 'D3';
+    if (allDone(s)) return s.discrepancies > 0 ? 'D4' : 'D5';
+    return done.length >= 2 ? 'D2' : 'D1';
   }
-  if (s.alert) return s.alert.text === ALERTS.network ? 'B7' : 'B8';
-  if (s.swipe) return s.recount.burine ? 'B6' : 'B4';
-  if (s.banner) return 'B5';
-  if (allDone(s)) return 'C5';
-  return done.length === 0 ? 'B1' : done.length === 1 ? 'B2' : 'B3';
+  if (s.alert) return s.alert.text === ALERTS.network ? 'C7' : 'C8';
+  if (s.swipe) return s.recount.burine ? 'C6' : 'C4';
+  if (s.banner) return 'C5';
+  if (allDone(s)) return 'D5';
+  return done.length === 0 ? 'C1' : done.length === 1 ? 'C2' : 'C3';
 }

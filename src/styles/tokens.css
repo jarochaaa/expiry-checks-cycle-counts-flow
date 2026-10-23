@@ -41,6 +41,21 @@
   --button-off-bg: #717171;
   --button-off-border: #a1a1a3;
 
+  /* Pelican 3.0 (dark) — Audits, product page and sheets */
+  --font-pelican: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --pl-lowest: #28282a;
+  --pl-flat: #1e1e20;
+  --pl-low: #141415;
+  --pl-highest: #f4f5f6;
+  --pl-text: #ffffff;
+  --pl-text-tertiary: rgba(255, 255, 255, 0.56);
+  --pl-text-inverse: #141415;
+  --pl-border: #434347;
+  --pl-border-high: #56565c;
+  --pl-info-low: #351c5f;
+  --pl-info-high: #b59ddc;
+  --pl-overlay: rgba(0, 0, 0, 0.6);
+
   --radius-card: 20px;
   --radius-modal: 18px;
   --radius-pill: 17px;

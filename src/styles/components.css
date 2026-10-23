@@ -228,6 +228,23 @@
   overflow: hidden;
   background: var(--surface-scan);
 }
+.card__top {
+  position: relative;
+}
+.card__batches {
+  list-style: none;
+  margin: 0;
+  padding: 6px 8px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-card);
+}
+.ptag--batch {
+  height: 22px;
+  font-size: 11px;
+}
 .card__scan {
   position: absolute;
   top: 0;
@@ -1048,4 +1065,661 @@ button.thumb {
     color: var(--accent-cyan);
     font-size: 14px;
   }
+}
+
+/* =====================================================================
+   Pelican 3.0 views: Audits, start sheet, product page, quantity sheet, calendar
+   ===================================================================== */
+.pl {
+  font-family: var(--font-pelican);
+  color: var(--pl-text);
+}
+.pl button {
+  font-family: inherit;
+}
+
+/* ---------- Audits ---------- */
+.audits {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--pl-lowest);
+}
+.audits__head {
+  flex: none;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audits__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+.circle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--pl-flat);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.circle-btn img {
+  width: 24px;
+  height: 24px;
+}
+.audits__title {
+  font: 700 30px/1.25 var(--font-pelican);
+}
+.p-tabs {
+  flex: none;
+  position: relative;
+  margin: 0 16px;
+  height: 52px;
+}
+.p-tabs__row {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px;
+  height: 52px;
+  position: relative;
+  z-index: 2;
+}
+.p-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 51px;
+}
+.p-tab__label {
+  height: 40px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  font: 700 14px/1.5 var(--font-pelican);
+  white-space: nowrap;
+}
+.p-tab__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--pl-text);
+  border-radius: 3px 3px 0 0;
+}
+.p-tabs__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--pl-border-high);
+  z-index: 1;
+}
+.segments {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 16px 16px 0;
+}
+.segment {
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  border-radius: 200px;
+  background: var(--pl-flat);
+  font: 600 14px/1.5 var(--font-pelican);
+}
+.segment--on {
+  background: var(--pl-highest);
+  color: var(--pl-text-inverse);
+}
+.audits__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.audits__scroll > * {
+  flex-shrink: 0;
+}
+.audits__section {
+  font: 600 14px/1.5 var(--font-pelican);
+}
+.ticket {
+  width: 100%;
+  display: block;
+  text-align: left;
+  background: var(--pl-flat);
+  border: 1px solid var(--pl-border);
+  border-radius: 20px;
+  padding: 16px;
+  color: inherit;
+}
+button.ticket {
+  cursor: pointer;
+}
+.ticket__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ticket__id {
+  flex: 1;
+  font: 700 20px/1.5 var(--font-pelican);
+}
+.ticket__date {
+  font: 600 12px/1.5 var(--font-pelican);
+}
+.ticket__second {
+  margin-top: 4px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ticket__products {
+  margin-left: auto;
+  font: 600 14px/1.5 var(--font-pelican);
+}
+.ptag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--pl-info-low);
+  color: var(--pl-info-high);
+  font: 600 12px/1.5 var(--font-pelican);
+  white-space: nowrap;
+}
+
+.bottom-nav {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 0 8px;
+  background: var(--pl-flat);
+  border-top: 1px solid var(--pl-border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottom-nav__item {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 0 16px;
+  font: 700 10px/1.6 var(--font-pelican);
+  letter-spacing: 0.2px;
+  color: var(--pl-text-tertiary);
+}
+.bottom-nav__item img {
+  width: 24px;
+  height: 24px;
+  opacity: 0.56;
+}
+.bottom-nav__item--on {
+  color: var(--pl-text);
+}
+.bottom-nav__item--on img {
+  opacity: 1;
+}
+.bottom-nav__item--on::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 28px;
+  height: 2px;
+  margin-left: -14px;
+  border-radius: 4px;
+  background: var(--pl-text);
+}
+
+/* ---------- Bottom sheets / modals (Pelican 3.0) ---------- */
+.p-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: var(--pl-overlay);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fade-in 160ms ease-out;
+}
+.p-overlay--center {
+  justify-content: center;
+  align-items: center;
+}
+.p-sheet {
+  position: relative;
+  background: var(--pl-flat);
+  border-radius: 20px 20px 0 0;
+  padding: 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  box-shadow: 0 4px 24px rgba(20, 20, 21, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: sheet-in 220ms ease-out;
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+}
+.p-sheet__illustration {
+  width: 80px;
+  height: 80px;
+}
+.p-sheet__title {
+  margin-top: 8px;
+  width: 100%;
+  text-align: center;
+  font: 600 24px/1.5 var(--font-pelican);
+}
+.p-sheet__close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.p-sheet__close img {
+  width: 24px;
+  height: 24px;
+}
+.p-sheet .ticket {
+  margin-top: 8px;
+}
+.p-btn {
+  width: 100%;
+  height: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pl-text);
+  color: var(--pl-text-inverse);
+  font: 600 14px/1.5 var(--font-pelican);
+}
+.p-btn--outline {
+  background: var(--pl-low);
+  color: var(--pl-text);
+  border: 1px solid var(--pl-text);
+}
+.p-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.p-sheet .p-btn {
+  margin-top: 24px;
+}
+
+/* ---------- Product page ---------- */
+.pdp {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  background: var(--pl-low);
+  animation: screen-enter 180ms ease-out;
+}
+.pdp__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+.pdp__scroll > * {
+  flex-shrink: 0;
+}
+.pdp__image {
+  position: relative;
+  height: 232px;
+  padding-top: 72px;
+  background: #fff;
+}
+.pdp__image-box {
+  height: 100%;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdp__image-box img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+.pdp__back {
+  position: absolute;
+  top: 8px;
+  left: 4px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pdp__back img {
+  width: 24px;
+  height: 24px;
+}
+.pdp__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px 16px;
+}
+.pdp__name {
+  font: 700 20px/1.5 var(--font-pelican);
+}
+.hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--pl-info-low);
+  color: #fff;
+}
+.hint > img {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+.hint__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: 500 14px/1.5 var(--font-pelican);
+}
+.hint__text strong {
+  font-weight: 700;
+}
+.hint__close {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+.hint__close img {
+  width: 24px;
+  height: 24px;
+}
+.discrepancy-p {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--accent-yellow);
+  color: var(--text-inverse);
+  font: 500 14px/1.5 var(--font-pelican);
+}
+.discrepancy-p img {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  filter: brightness(0.2);
+}
+.discrepancy-p strong {
+  font-weight: 700;
+}
+.pdp__first {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.loc-tag {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border-radius: 200px;
+  background: var(--pl-lowest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 16px/1.5 var(--font-pelican);
+}
+.recount-tag {
+  flex: none;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 200px;
+  display: flex;
+  align-items: center;
+  font: 600 12px/1 var(--font-pelican);
+  background: var(--accent-yellow);
+  color: var(--pl-text-inverse);
+}
+.batch {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--pl-flat);
+  border: 1px solid var(--pl-border);
+}
+.batch__title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 700 14px/1.5 var(--font-pelican);
+}
+.batch__title span:first-child {
+  flex: 1;
+}
+.batch__line {
+  height: 1px;
+  background: var(--pl-border-high);
+}
+.batch__qty {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font: 700 16px/1.5 var(--font-pelican);
+}
+.batch__qty > span {
+  flex: 1;
+}
+.qty-field {
+  width: 161px;
+  height: 48px;
+  border-radius: 200px;
+  border: 1px solid var(--pl-border-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 16px/1.5 var(--font-pelican);
+}
+.pdp__ctas {
+  flex: none;
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+.pdp__ctas .p-btn {
+  flex: 1;
+}
+
+/* ---------- Quantity sheet ---------- */
+.qsheet {
+  background: var(--pl-low);
+  border-radius: 20px 20px 0 0;
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: sheet-in 220ms ease-out;
+}
+.qsheet__label {
+  padding-top: 8px;
+  font: 600 14px/1.5 var(--font-pelican);
+  text-align: center;
+}
+.qsheet__input {
+  width: 100%;
+  height: 54px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--pl-text);
+  text-align: center;
+  font: 700 30px/1.25 var(--font-pelican);
+  caret-color: var(--pl-text);
+}
+.qsheet__input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+.qsheet .p-btn {
+  margin-top: 8px;
+}
+.qsheet .loc-tag {
+  flex: none;
+  width: 100%;
+}
+
+/* ---------- Calendar ---------- */
+.cal {
+  width: 328px;
+  max-width: calc(100% - 32px);
+  background: var(--pl-low);
+  border-radius: 24px;
+  overflow: hidden;
+  animation: fade-in 160ms ease-out;
+}
+.cal__head {
+  padding: 16px 12px 12px 24px;
+  border-bottom: 1px solid var(--pl-flat);
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.cal__head > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.cal__q {
+  font: 600 14px/1.5 var(--font-pelican);
+}
+.cal__date {
+  font: 700 30px/40px var(--font-pelican);
+}
+.cal__pencil {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal__pencil img {
+  width: 24px;
+  height: 24px;
+}
+.cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px 0 24px;
+  height: 48px;
+}
+.cal__month {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: 600 12px/1.5 var(--font-pelican);
+}
+.cal__month img {
+  width: 24px;
+  height: 24px;
+}
+.cal__arrows {
+  display: flex;
+}
+.cal__arrows button {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal__arrows img {
+  width: 24px;
+  height: 24px;
+}
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 12px;
+  row-gap: 0;
+  text-align: center;
+}
+.cal__dow {
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 14px/1 var(--font-roboto, var(--font-sans));
+  letter-spacing: 0.5px;
+}
+.cal__day {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cal__day button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font: 700 14px/1 var(--font-sans);
+  letter-spacing: 0.5px;
+}
+.cal__day--sel button {
+  background: #fff;
+  color: var(--pl-text-inverse);
+}
+.cal__foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 12px 12px;
+}
+.cal__foot .p-btn {
+  width: auto;
+  padding: 0 24px;
+  margin: 0;
+  height: 48px;
 }
