@@ -3,7 +3,7 @@ import { DetailModal } from './components/DetailModal';
 import { SendSheet, StartSheet } from './components/Sheets';
 import { TaskBanner } from './components/TaskBanner';
 import { Toast } from './components/ui';
-import { LOC_BY_ID, LOC_ORDER } from './data';
+import { LOC_BY_ID, PRODUCTS } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { Audits } from './screens/Audits';
@@ -11,7 +11,7 @@ import { PdpScreen } from './screens/Pdp';
 import { PRESETS, codeFor, initialState, reducer } from './state';
 import { taskFor } from './tasks';
 
-const SKUS = LOC_ORDER.length;
+const SKUS = Object.keys(PRODUCTS).length;
 const SEND_MS = 1400;
 
 export default function App() {
