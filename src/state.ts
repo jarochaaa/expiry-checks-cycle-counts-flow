@@ -234,6 +234,8 @@ export function reducer(s: State, a: Action): State {
 
 export interface Preset {
   id: string;
+  /** view letter + use-case number, e.g. B3 */
+  code: string;
   group: string;
   label: string;
   actions: Action[];
@@ -258,9 +260,14 @@ const RCALL: Action[] = [...RC1, ...count('burine', '30')];
 // Wrong total typed on the last SKU → discrepancy shown inside the modal
 const DM: Action[] = [...S2, ...entered('burine', '25'), { type: 'submit' }];
 
-const P = (group: string, id: string, label: string, actions: Action[]): Preset => ({ id, group, label, actions });
+const CODES: Record<string, string> = {"tasks": "A1", "assign": "A2", "skus": "B1", "sita2-todo": "B2", "burine-todo": "B3", "burine-swipe": "B4", "burine-banner": "B5", "burine-swipe2": "B6", "alert-network": "B7", "alert-wrong": "B8", "sita1-processed": "C1", "sita2-processed": "C2", "burine-rc-processed": "C3", "burine-rc-done": "C4", "all-done": "C5", "alert-complete": "C6", "sita1-open": "D1", "sita1-typing": "D2", "sita1-entered": "D3", "sita2-open": "D4", "sita2-typing": "D5", "sita2-entered": "D6", "burine-open": "D7", "burine-typing": "D8", "burine-entered": "D9", "burine-rc-open": "D10", "burine-rc-entered": "D11", "burine-dm": "D12", "burine-dm-typing": "D13", "detail": "E1", "send": "F1", "alert-send": "F2", "loading": "G1", "summary": "H1"};
+const TITLES: Record<string, string> = {"A": "Task list", "B": "SKU list · To be processed", "C": "SKU list · Processed", "D": "Scan modal", "E": "Product details", "F": "Send sheet", "G": "Sending", "H": "Summary"};
+const P = (_group: string, id: string, label: string, actions: Action[]): Preset => {
+  const code = CODES[id];
+  return { id, code, group: `${code[0]} · ${TITLES[code[0]]}`, label, actions };
+};
 
-export const PRESETS: Preset[] = [
+const RAW: Preset[] = [
   P('Entry', 'tasks', 'Task list', []),
   P('Entry', 'assign', 'Assign to me?', [{ type: 'openTask' }]),
   P('Entry', 'skus', 'SKU list · nothing counted', START),
@@ -300,3 +307,16 @@ export const PRESETS: Preset[] = [
   P('End', 'loading', 'Sending…', [...ALL, { type: 'complete' }, { type: 'send' }]),
   P('End', 'summary', 'Task completed · summary', [...ALL, { type: 'complete' }, { type: 'send' }, { type: 'sent' }]),
 ];
+
+const codeKey = (c: string) => c.charCodeAt(0) * 100 + parseInt(c.slice(1), 10);
+export const PRESETS: Preset[] = [...RAW].sort((a, b) => codeKey(a.code) - codeKey(b.code));
+
+/** View code of the state the tester is looking at (matches a preset exactly, else null). */
+export function codeFor(s: State): string | null {
+  const key = (x: State) => JSON.stringify({ ...x, alertId: 0, alert: x.alert && { text: x.alert.text } });
+  const k = key(s);
+  for (const p of PRESETS) {
+    if (key(p.actions.reduce(reducer, { ...initialState })) === k) return p.code;
+  }
+  return null;
+}

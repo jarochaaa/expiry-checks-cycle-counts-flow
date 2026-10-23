@@ -8,7 +8,7 @@ import { LOC_ORDER } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { TaskList } from './screens/TaskList';
-import { PRESETS, initialState, reducer } from './state';
+import { PRESETS, codeFor, initialState, reducer } from './state';
 import { taskFor } from './tasks';
 
 const SKUS = LOC_ORDER.length;
@@ -41,11 +41,16 @@ export default function App() {
           <div key={p.id} style={{ display: 'contents' }}>
             {(i === 0 || PRESETS[i - 1].group !== p.group) && <div className="proto-nav__sub">{p.group}</div>}
             <button type="button" onClick={() => dispatch({ type: 'jump', preset: p.id })}>
+              <b className="proto-nav__code">{p.code}</b>
               {p.label}
             </button>
           </div>
         ))}
       </nav>
+
+      <div className="view-tag" aria-hidden>
+        View <b>{codeFor(s) ?? '·'}</b>
+      </div>
 
       <div className="app">
         <TaskBanner task={taskFor(s)} />
