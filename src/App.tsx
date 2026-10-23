@@ -1,6 +1,7 @@
 import { useEffect, useReducer } from 'react';
 import { DetailModal } from './components/DetailModal';
 import { SendSheet, StartSheet } from './components/Sheets';
+import { TesterNotes } from './components/TesterNotes';
 import { TaskBanner } from './components/TaskBanner';
 import { Toast } from './components/ui';
 import { LOC_BY_ID, PRODUCTS } from './data';
@@ -45,6 +46,8 @@ export default function App() {
           </div>
         ))}
       </nav>
+
+      <TesterNotes s={s} code={codeFor(s)} />
 
       <div className="view-tag" aria-hidden>
         View <b>{codeFor(s) ?? '·'}</b>

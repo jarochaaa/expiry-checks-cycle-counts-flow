@@ -57,16 +57,18 @@ export interface Loc {
   multi: boolean;
   /** Expiry dates (batches) to check at this location, DD.MM.YYYY */
   dates: string[];
+  /** Quantities per date (same order as `dates`) that add up to the expected total: no discrepancy */
+  pass: number[];
   /** The location only shows up in the list once this other location has been counted */
   unlockedBy?: LocId;
 }
 
 /** Route order. SKUs are listed by LOCATION, not by product. */
 export const LOCS: Loc[] = [
-  { id: 'sita1', product: 'sita', code: 'a11-131-120', num: 1, multi: false, dates: ['12.12.2027', '21.11.2027'] },
-  { id: 'burine', product: 'burine', code: 'a22-154-100', num: 1, multi: false, dates: ['05.03.2027'] },
-  { id: 'chao1', product: 'chao', code: 'a22-154-112', num: 1, multi: true, dates: ['12.12.2027', '21.11.2027', '07.08.2026'] },
-  { id: 'chao2', product: 'chao', code: 'a22-155-114', num: 2, multi: true, dates: ['12.12.2027', '21.11.2027', '07.08.2026'], unlockedBy: 'chao1' },
+  { id: 'sita1', product: 'sita', code: 'a11-131-120', num: 1, multi: false, dates: ['12.12.2027', '21.11.2027'], pass: [6, 4] },
+  { id: 'burine', product: 'burine', code: 'a22-154-100', num: 1, multi: false, dates: ['05.03.2027'], pass: [20] },
+  { id: 'chao1', product: 'chao', code: 'a22-154-112', num: 1, multi: true, dates: ['12.12.2027', '21.11.2027', '07.08.2026'], pass: [5, 4, 3] },
+  { id: 'chao2', product: 'chao', code: 'a22-155-114', num: 2, multi: true, dates: ['12.12.2027', '21.11.2027', '07.08.2026'], pass: [6, 4, 2], unlockedBy: 'chao1' },
 ];
 
 export const LOC_BY_ID = Object.fromEntries(LOCS.map((l) => [l.id, l])) as Record<LocId, Loc>;
