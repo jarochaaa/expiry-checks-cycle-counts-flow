@@ -1,0 +1,19 @@
+src/state.ts
+  s_1bf2109d03fa68::t_08e91d46e9363b 247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "635332e677d611f87488d580c6437b8033f544fd",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
