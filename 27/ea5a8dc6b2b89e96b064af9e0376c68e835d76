@@ -1,0 +1,23 @@
+src/components/TaskBanner.tsx
+  s_1bf2109d03fa68::t_32d14482da81a7 4-5,16
+src/App.tsx
+  s_1bf2109d03fa68::t_32d14482da81a7 56
+src/styles/components.css
+  s_1bf2109d03fa68::t_32d14482da81a7 25-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "27ea5a8dc6b2b89e96b064af9e0376c68e835d76",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
