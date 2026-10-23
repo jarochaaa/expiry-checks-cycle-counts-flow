@@ -1,8 +1,9 @@
 import { LOCS, LOC_BY_ID, LOC_ORDER, PRODUCTS, batchTotal, defaultBatches, fmtDate, productLocs } from './data';
 import type { Batch, LocId, ProductId } from './data';
+import type { Lang } from './i18n';
 
 export type Tab = 'todo' | 'done';
-export type Screen = 'audits' | 'skus' | 'summary';
+export type Screen = 'audits' | 'language' | 'skus' | 'summary';
 export type AuditsTab = 'count' | 'removal';
 export type Pill = 'counting' | 'recount' | null;
 
@@ -36,6 +37,8 @@ export interface Alert {
 }
 
 export interface State {
+  /** UI language; survives restarts and jumps */
+  lang: Lang;
   screen: Screen;
   auditsTab: AuditsTab;
   /** task the tester picked on the Audits list */
@@ -71,6 +74,7 @@ const emptyLoc = (id: LocId): LocState => ({ done: false, count: 0, oos: false, 
 const zeroed = (b: Batch[]): Batch[] => b.map((x) => ({ ...x, qty: 0 }));
 
 export const initialState: State = {
+  lang: 'en',
   screen: 'audits',
   auditsTab: 'count',
   taskId: '67891',
@@ -95,6 +99,8 @@ export const initialState: State = {
 
 export type Action =
   | { type: 'auditsTab'; tab: AuditsTab }
+  | { type: 'openLanguage' }
+  | { type: 'setLang'; lang: Lang; leave?: boolean }
   | { type: 'openTicket'; id: string }
   | { type: 'closeSheet' }
   | { type: 'start' }
@@ -122,11 +128,8 @@ export type Action =
   | { type: 'alert'; text: string | null }
   | { type: 'jump'; preset: string };
 
-export const ALERTS = {
-  network: 'We could not retrieve product information. Please check your internet connection and try again.',
-  wrong: 'The Product you scanned is not in the list. Please try again.',
-  error: 'An error occurred. Please try again.',
-};
+/** Alert keys; the text is translated where it is shown (see i18n.tsx, `alert.*`). */
+export const ALERTS = { network: 'network', wrong: 'wrong', error: 'error' } as const;
 
 /* ---------- selectors ---------- */
 
@@ -205,6 +208,10 @@ export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'auditsTab':
       return { ...s, auditsTab: a.tab };
+    case 'openLanguage':
+      return { ...s, screen: 'language' };
+    case 'setLang':
+      return { ...s, lang: a.lang, screen: a.leave ? 'audits' : s.screen };
     case 'openTicket':
       return { ...s, taskId: a.id, sheet: 'start' };
     case 'closeSheet':
@@ -298,13 +305,13 @@ export function reducer(s: State, a: Action): State {
     case 'sent':
       return { ...s, sending: false, screen: 'summary' };
     case 'reset':
-      return { ...initialState, alertId: s.alertId };
+      return { ...initialState, lang: s.lang, alertId: s.alertId };
     case 'alert':
       return a.text ? { ...s, alert: { id: s.alertId + 1, text: a.text }, alertId: s.alertId + 1 } : { ...s, alert: null };
     case 'jump': {
       const p = PRESETS.find((x) => x.id === a.preset);
       if (!p) return s;
-      return p.actions.reduce(reducer, { ...initialState, alertId: s.alertId });
+      return p.actions.reduce(reducer, { ...initialState, lang: s.lang, alertId: s.alertId });
     }
   }
 }
@@ -343,7 +350,7 @@ const RC1: Action[] = [...S3, ...oos('chao2')];
 const DM: Action[] = [...S3, ...filled('chao2', '6', '4', '1'), { type: 'confirm' }];
 
 const CODES: Record<string, string> = {
-  'audits': 'A1', 'removal': 'A2', 'start': 'B1',
+  'audits': 'A1', 'removal': 'A2', 'language': 'A3', 'start': 'B1',
   'skus': 'C1', 'sita-done-todo': 'C2', 'burine-done-todo': 'C3', 'chao2-created': 'C4', 'chao2-swipe': 'C5', 'chao-banner': 'C6', 'chao-swipe2': 'C7', 'alert-network': 'C8', 'alert-wrong': 'C9',
   'processed-1': 'D1', 'processed-2': 'D2', 'processed-3': 'D3', 'processed-oos': 'D4', 'processed-recount': 'D5', 'all-done': 'D6', 'alert-complete': 'D7',
   'pdp-initial': 'E1', 'pdp-hint-closed': 'E2', 'pdp-entered': 'E3', 'pdp-new-batch': 'E4', 'pdp-recount': 'E5', 'pdp-discrepancy': 'E6',
@@ -365,6 +372,7 @@ const SITA_OPEN: Action[] = [...START, ...scan('sita1'), hint];
 const RAW: Preset[] = [
   P('audits', 'Count Tasks · Cycle Count', []),
   P('removal', 'Removal Tasks', [{ type: 'auditsTab', tab: 'removal' }]),
+  P('language', 'Language', [{ type: 'openLanguage' }]),
   P('start', 'Do you want to start this task?', [{ type: 'openTicket', id: '67891' }]),
 
   P('skus', 'Nothing counted (3 products)', START),
@@ -421,6 +429,7 @@ export function codeFor(s: State): string {
   if (s.sending) return 'J1';
   if (s.sheet === 'send') return s.alert ? 'I2' : 'I1';
   if (s.detail) return 'H1';
+  if (s.screen === 'language') return 'A3';
   if (s.screen === 'audits') return s.sheet === 'start' ? 'B1' : s.auditsTab === 'removal' ? 'A2' : 'A1';
   if (s.pdp) {
     const { sheet, batches, banner, loc } = s.pdp;

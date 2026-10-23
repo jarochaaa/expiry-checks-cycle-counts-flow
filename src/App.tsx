@@ -8,6 +8,8 @@ import { LOC_BY_ID, PRODUCTS } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { Audits } from './screens/Audits';
+import { Language } from './screens/Language';
+import { I18nProvider, LANGS, makeI18n } from './i18n';
 import { PdpScreen } from './screens/Pdp';
 import { PRESETS, codeFor, initialState, reducer } from './state';
 import { taskFor } from './tasks';
@@ -32,10 +34,19 @@ export default function App() {
     return () => clearTimeout(t);
   }, [s.sending]);
 
+  const i18n = makeI18n(s.lang);
   return (
+    <I18nProvider value={i18n}>
     <div className="stage">
       <nav className="proto-nav" aria-label="Prototype flow">
         <div className="proto-nav__title">Cycle Count · flow</div>
+        <div className="proto-nav__langs" role="group" aria-label="Language">
+          {LANGS.map((l) => (
+            <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
+              {l.id.toUpperCase()}
+            </button>
+          ))}
+        </div>
         {PRESETS.map((p, i) => (
           <div key={p.id} style={{ display: 'contents' }}>
             {(i === 0 || PRESETS[i - 1].group !== p.group) && <div className="proto-nav__sub">{p.group}</div>}
@@ -56,8 +67,9 @@ export default function App() {
       <div className="app">
         <TaskBanner task={taskFor(s)} code={codeFor(s)} />
 
-        <div className="app__view">
+        <div className="app__view" dir={i18n.rtl ? 'rtl' : 'ltr'} lang={s.lang}>
           {s.screen === 'audits' && <Audits tab={s.auditsTab} dispatch={dispatch} />}
+          {s.screen === 'language' && <Language dispatch={dispatch} />}
           {s.screen === 'skus' && <SkuList s={s} dispatch={dispatch} />}
           {s.screen === 'summary' && <Summary taskId={s.taskId} skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}
 
@@ -73,11 +85,12 @@ export default function App() {
 
           {s.alert && (
             <Toast key={s.alert.id} onClick={() => dispatch({ type: 'alert', text: null })}>
-              {s.alert.text}
+              {i18n.t(`alert.${s.alert.text}` as 'alert.error')}
             </Toast>
           )}
         </div>
       </div>
     </div>
+    </I18nProvider>
   );
 }

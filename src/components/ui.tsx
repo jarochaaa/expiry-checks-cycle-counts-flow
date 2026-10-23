@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { icons } from './icons';
 import type { Pill as PillKind } from '../state';
+import { useI18n } from '../i18n';
 
 export const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -15,12 +16,13 @@ export function LocPin({ num }: { num: 1 | 2 }) {
 }
 
 export function StatusPill({ kind }: { kind: Exclude<PillKind, null> }) {
+  const { t } = useI18n();
   return (
     <span className={cx('pill', kind === 'recount' ? 'pill--recount' : 'pill--counting')}>
       <span className="pill__icon">
         <img src={kind === 'recount' ? icons.syncWarning : icons.tripPill} alt="" />
       </span>
-      {kind === 'recount' ? 'Recount' : 'Counting'}
+      {kind === 'recount' ? t('recount') : t('counting')}
     </span>
   );
 }
@@ -34,10 +36,11 @@ export function Toast({ children, onClick }: { children: ReactNode; onClick: () 
 }
 
 export function Header({ title, onBack, actions, app }: { title: string; onBack?: () => void; actions?: boolean; app?: boolean }) {
+  const { t } = useI18n();
   return (
     <header className="header">
       {onBack && (
-        <button type="button" className="header__back" aria-label="Back" onClick={onBack}>
+        <button type="button" className="header__back" aria-label={t('back')} onClick={onBack}>
           <img src={icons.arrowBack} alt="" />
         </button>
       )}

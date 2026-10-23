@@ -5,6 +5,7 @@ import type { Pdp as PdpState } from '../state';
 import type { Action } from '../state';
 import { icons } from '../components/icons';
 import { cx } from '../components/ui';
+import { useI18n } from '../i18n';
 
 /** Height the on-screen keyboard takes from the bottom of the visual viewport (0 where the layout already resizes). */
 function useKeyboardInset(active: boolean) {
@@ -26,6 +27,7 @@ function useKeyboardInset(active: boolean) {
 }
 
 function QtySheet({ pdp, dispatch }: { pdp: PdpState; dispatch: Dispatch<Action> }) {
+  const { t } = useI18n();
   const sheet = pdp.sheet as Extract<PdpState['sheet'], { kind: 'qty' }>;
   const loc = LOC_BY_ID[pdp.loc];
   const ref = useRef<HTMLInputElement>(null);
@@ -36,8 +38,8 @@ function QtySheet({ pdp, dispatch }: { pdp: PdpState; dispatch: Dispatch<Action>
   return (
     <div className="p-overlay pl" style={{ paddingBottom: inset }} onClick={() => dispatch({ type: 'sheetCancel' })}>
       <div className="qsheet" role="dialog" aria-label="Quantity" onClick={(e) => e.stopPropagation()}>
-        <div className="loc-tag">{loc.code}</div>
-        <p className="qsheet__label">Count all items with Expiry Date</p>
+        <div className="loc-tag"><bdi>{loc.code}</bdi></div>
+        <p className="qsheet__label">{t('countAll')}</p>
         <span className="ptag">{sheet.date}</span>
         <input
           ref={ref}
@@ -48,33 +50,35 @@ function QtySheet({ pdp, dispatch }: { pdp: PdpState; dispatch: Dispatch<Action>
           enterKeyHint="done"
           autoComplete="off"
           placeholder="0"
-          aria-label="Quantity"
+          aria-label={t('quantity')}
           value={sheet.value}
           onChange={(e) => dispatch({ type: 'qtyType', value: e.target.value })}
           onKeyDown={(e) => e.key === 'Enter' && dispatch({ type: 'qtyDone' })}
         />
         <button type="button" className="p-btn" onClick={() => dispatch({ type: 'qtyDone' })}>
-          Done
+          {t('done')}
         </button>
       </div>
     </div>
   );
 }
 
-const WEEK = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 function Calendar({ sheet, dispatch }: { sheet: Extract<PdpState['sheet'], { kind: 'calendar' }>; dispatch: Dispatch<Action> }) {
+  const { t } = useI18n();
+  const WEEK = t('weekdays').split(',');
+  const locale = t('locale');
   const { viewY, viewM, y, m, d } = sheet;
   const first = new Date(viewY, viewM, 1).getDay();
   const days = new Date(viewY, viewM + 1, 0).getDate();
-  const month = new Date(viewY, viewM, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const headline = new Date(y, m, d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const month = new Date(viewY, viewM, 1).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+  const headline = new Date(y, m, d).toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' });
   return (
     <div className="p-overlay p-overlay--center pl" onClick={() => dispatch({ type: 'sheetCancel' })}>
-      <div className="cal" role="dialog" aria-label="Expiry date" onClick={(e) => e.stopPropagation()}>
+      <div className="cal" role="dialog" aria-label={t('countAll')} onClick={(e) => e.stopPropagation()}>
         <div className="cal__head">
           <div>
-            <p className="cal__q">Which expiry date you want to capture?</p>
+            <p className="cal__q">{t('calQuestion')}</p>
             <p className="cal__date">{headline}</p>
           </div>
           <span className="cal__pencil" aria-hidden>
@@ -87,10 +91,10 @@ function Calendar({ sheet, dispatch }: { sheet: Extract<PdpState['sheet'], { kin
             <img src={icons.calCaret} alt="" />
           </span>
           <div className="cal__arrows">
-            <button type="button" aria-label="Previous month" onClick={() => dispatch({ type: 'calMonth', delta: -1 })}>
+            <button type="button" aria-label={t('prevMonth')} onClick={() => dispatch({ type: 'calMonth', delta: -1 })}>
               <img src={icons.calPrev} alt="" />
             </button>
-            <button type="button" aria-label="Next month" onClick={() => dispatch({ type: 'calMonth', delta: 1 })}>
+            <button type="button" aria-label={t('nextMonth')} onClick={() => dispatch({ type: 'calMonth', delta: 1 })}>
               <img src={icons.calNext} alt="" />
             </button>
           </div>
@@ -118,7 +122,7 @@ function Calendar({ sheet, dispatch }: { sheet: Extract<PdpState['sheet'], { kin
         </div>
         <div className="cal__foot">
           <button type="button" className="p-btn" onClick={() => dispatch({ type: 'calApply' })}>
-            Apply
+            {t('apply')}
           </button>
         </div>
       </div>
@@ -128,6 +132,7 @@ function Calendar({ sheet, dispatch }: { sheet: Extract<PdpState['sheet'], { kin
 
 /** Product page of a location: count the units for each expiry date (batch), add batches, confirm. */
 export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpState; recount: boolean; hintClosed: boolean; dispatch: Dispatch<Action> }) {
+  const { t, rich } = useI18n();
   const loc = LOC_BY_ID[pdp.loc];
   const product = PRODUCTS[loc.product];
   const total = batchTotal(pdp.batches);
@@ -149,7 +154,7 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
     <div className="pdp pl">
       <div className="pdp__scroll" ref={scroller}>
         <div className="pdp__image">
-          <button type="button" className="pdp__back" aria-label="Back" onClick={() => dispatch({ type: 'pdpBack' })}>
+          <button type="button" className="pdp__back" aria-label={t('back')} onClick={() => dispatch({ type: 'pdpBack' })}>
             <img src={icons.pdpBack} alt="" />
           </button>
           <div className="pdp__image-box">
@@ -161,37 +166,35 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
           {pdp.banner && (
             <div className="discrepancy-p" role="status">
               <img src={icons.alertTriangle} alt="" />
-              <p>
-                <strong>Stock Discrepancy.</strong> Product total units don’t match. Please <strong>recount</strong> all locations for this product, starting with <strong>this one</strong>.
-              </p>
+              <p>{rich('discrepancyPdp')}</p>
             </div>
           )}
           {!hintClosed && !pdp.banner && (
             <div className="hint" role="note">
               <img src={icons.infoCircle} alt="" />
               <div className="hint__text">
-                <strong>How to check Expiry Dates</strong>
-                <span>Count the total units for each listed Expiry Date within this location. If any expiry dates are missing, please create a new batch for them.</span>
+                <strong>{t('hintTitle')}</strong>
+                <span>{t('hintBody')}</span>
               </div>
-              <button type="button" className="hint__close" aria-label="Close hint" onClick={() => dispatch({ type: 'closeHint' })}>
+              <button type="button" className="hint__close" aria-label={t('close')} onClick={() => dispatch({ type: 'closeHint' })}>
                 <img src={icons.xWhite} alt="" />
               </button>
             </div>
           )}
           <div className="pdp__first">
-            <div className="loc-tag">{loc.code}</div>
-            {recount && <span className="recount-tag">Recount</span>}
+            <div className="loc-tag"><bdi>{loc.code}</bdi></div>
+            {recount && <span className="recount-tag">{t('recount')}</span>}
           </div>
           {pdp.batches.map((b) => (
             <section key={b.date} data-date={b.date} className="batch">
               <div className="batch__title">
-                <span>Count all items with Expiry Date</span>
+                <span>{t('countAll')}</span>
                 <span className="ptag">{b.date}</span>
               </div>
               <div className="batch__line" />
               <div className="batch__qty">
-                <span>Quantity</span>
-                <button type="button" className="qty-field" aria-label={`Quantity for ${b.date}`} onClick={() => dispatch({ type: 'openQty', date: b.date })}>
+                <span>{t('quantity')}</span>
+                <button type="button" className="qty-field" aria-label={`${t('quantity')} ${b.date}`} onClick={() => dispatch({ type: 'openQty', date: b.date })}>
                   {b.qty}
                 </button>
               </div>
@@ -201,10 +204,10 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
       </div>
       <div className="pdp__ctas">
         <button type="button" className="p-btn p-btn--outline" onClick={() => dispatch({ type: 'openCalendar' })}>
-          Add batches
+          {t('addBatches')}
         </button>
         <button type="button" className="p-btn" disabled={total === 0} onClick={() => dispatch({ type: 'confirm' })}>
-          Confirm
+          {t('confirm')}
         </button>
       </div>
 

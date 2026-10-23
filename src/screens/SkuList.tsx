@@ -7,8 +7,10 @@ import { LocationCard } from '../components/LocationCard';
 import { SwipeOOS } from '../components/SwipeOOS';
 import { icons } from '../components/icons';
 import { Header, cx } from '../components/ui';
+import { useI18n } from '../i18n';
 
 export function SkuList({ s, dispatch }: { s: State; dispatch: Dispatch<Action> }) {
+  const { t, rich } = useI18n();
   const pending = pendingLocs(s);
   const done = doneLocs(s);
   const todoTab = s.tab === 'todo';
@@ -18,24 +20,20 @@ export function SkuList({ s, dispatch }: { s: State; dispatch: Dispatch<Action> 
     <div className="screen screen-enter">
       <Header title={s.taskId} onBack={() => dispatch({ type: 'back' })} />
       <div className="tabs" role="tablist">
-        <button type="button" role="tab" aria-selected={todoTab} aria-label="To be processed" className="tabs__tab" onClick={() => dispatch({ type: 'tab', tab: 'todo' })}>
+        <button type="button" role="tab" aria-selected={todoTab} aria-label={t('toBeProcessed')} className="tabs__tab" onClick={() => dispatch({ type: 'tab', tab: 'todo' })}>
           <img src={icons.tabTodo} alt="" />
         </button>
-        <button type="button" role="tab" aria-selected={!todoTab} aria-label="Processed" className="tabs__tab" onClick={() => dispatch({ type: 'tab', tab: 'done' })}>
+        <button type="button" role="tab" aria-selected={!todoTab} aria-label={t('processed')} className="tabs__tab" onClick={() => dispatch({ type: 'tab', tab: 'done' })}>
           <img src={icons.tabDone} alt="" />
         </button>
       </div>
       <div className="panel">
         <div className={cx('panel__scroll', finished && 'panel__scroll--cta')}>
-          <p className={cx('panel__label', todoTab ? 'panel__label--todo' : 'panel__label--done')}>{todoTab ? 'To be processed' : 'Processed'}</p>
+          <p className={cx('panel__label', todoTab ? 'panel__label--todo' : 'panel__label--done')}>{todoTab ? t('toBeProcessed') : t('processed')}</p>
           {todoTab && s.banner && (
             <div className="discrepancy" role="status">
               <img className="dark-icon" src={icons.alertTriangle} alt="" />
-              <p>
-                <strong>Stock Discrepancy.</strong>
-                <br />
-                Product Total Units don’t match. Please <strong>Recount</strong> all locations for this product.
-              </p>
+              <p>{rich('discrepancyList')}</p>
             </div>
           )}
           <div className="list">
@@ -53,7 +51,7 @@ export function SkuList({ s, dispatch }: { s: State; dispatch: Dispatch<Action> 
         </div>
         {finished && (
           <button type="button" className="btn btn--primary cta" onClick={() => dispatch({ type: 'complete' })} disabled={s.sending}>
-            Complete
+            {t('complete')}
           </button>
         )}
       </div>

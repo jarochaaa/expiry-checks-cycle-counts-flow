@@ -3,6 +3,7 @@ import type { LocId } from '../data';
 import type { LocState, Pill } from '../state';
 import { icons } from './icons';
 import { LocPin, StatusPill, cx } from './ui';
+import { useI18n } from '../i18n';
 
 /** One SKU **location** card (the list is by location, not by product). */
 export function LocationCard({
@@ -19,6 +20,7 @@ export function LocationCard({
   onScan?: () => void;
   onImage: () => void;
 }) {
+  const { t: tr } = useI18n();
   const loc = LOC_BY_ID[id];
   const p = PRODUCTS[loc.product];
   const t = p.thumb;
@@ -38,7 +40,7 @@ export function LocationCard({
             <div className={cx('card__pills', !pill && 'card__pills--empty')}>{pill && <StatusPill kind={pill} />}</div>
             <div className="loc">
               <LocPin num={loc.num} />
-              {loc.code}
+              <bdi>{loc.code}</bdi>
             </div>
           </div>
         </div>
@@ -56,7 +58,7 @@ export function LocationCard({
       {loc.multi && (
         <div className="card__header">
           <img src={icons.tripHeader} alt="" />
-          Product on Multiple Locations
+          {tr('multiLoc')}
         </div>
       )}
      </div>

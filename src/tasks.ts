@@ -32,7 +32,7 @@ const t = (n: number): Task => ({ n, detail: COPY.detail, description: COPY.desc
  */
 export function stepFor(s: State): number {
   const list = 3 + s.events;
-  if (s.screen === 'audits') return s.sheet === 'start' ? 2 : 1;
+  if (s.screen === 'audits' || s.screen === 'language') return s.sheet === 'start' ? 2 : 1;
   if (s.screen === 'summary') return list + 2;
   if (s.sheet === 'send' || s.sending) return list + 1;
   return list;

@@ -1,6 +1,6 @@
 /* Colour and type values resolved from the Figma frames (Cycle Count, dark theme). */
 :root {
-  --font-sans: 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Roboto', 'Noto Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-banner: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   /* surfaces */
@@ -42,7 +42,7 @@
   --button-off-border: #a1a1a3;
 
   /* Pelican 3.0 (dark) — Audits, product page and sheets */
-  --font-pelican: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-pelican: 'Inter', 'Noto Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --pl-lowest: #28282a;
   --pl-flat: #1e1e20;
   --pl-low: #141415;

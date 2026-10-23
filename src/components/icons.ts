@@ -22,6 +22,7 @@ import tabTodo from '../assets/icons/tab-todo.svg';
 import tripHeader from '../assets/icons/trip-header.svg';
 import tripPill from '../assets/icons/trip-pill.svg';
 import wineBottle from '../assets/icons/wine-bottle.svg';
+import chevronLang from '../assets/icons2/chevron-lang.svg';
 import calCaret from '../assets/icons2/caret.svg';
 import calNext from '../assets/icons2/cal-next.svg';
 import calPrev from '../assets/icons2/cal-prev.svg';
@@ -39,6 +40,7 @@ import xWhite from '../assets/icons2/x-white.svg';
 import tick from '../assets/products/tick-ok.gif';
 
 export const icons = {
+  chevronLang,
   calCaret, calNext, calPrev, helpCircle, infoCircle, navAudits, navMore, navOrders, navReceiving, pencil, pdpBack, startIllustration, userCircle, xWhite,
   allInbox,
   alertTriangle,

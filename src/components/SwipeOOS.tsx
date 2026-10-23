@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { MouseEvent, PointerEvent, ReactNode } from 'react';
 import { icons } from './icons';
 import { cx } from './ui';
+import { useI18n } from '../i18n';
 
 /** Width of the revealed red "Out of Stock" area. */
 const OPEN = 80;
@@ -29,6 +30,8 @@ export function SwipeOOS({
   onOOS: () => void;
   children: ReactNode;
 }) {
+  const { t, rtl } = useI18n();
+  const sgn = rtl ? -1 : 1; // the card slides toward the start side, which is right in RTL
   const [drag, setDrag] = useState<number | null>(null);
   const [leaving, setLeaving] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -54,7 +57,7 @@ export function SwipeOOS({
   const onMove = (e: PointerEvent) => {
     const s = start.current;
     if (!s) return;
-    const delta = e.clientX - s.x;
+    const delta = (e.clientX - s.x) * sgn;
     if (!moved.current && Math.abs(delta) > DRAG_START) {
       moved.current = true;
       try {
@@ -97,22 +100,18 @@ export function SwipeOOS({
       <button
         type="button"
         className="swipe__oos"
-        aria-label="Mark as out of stock"
+        aria-label={t('outOfStockAria')}
         tabIndex={revealed ? 0 : -1}
         style={{ width: Math.max(OPEN, -x) }}
         disabled={leaving}
         onClick={confirm}
       >
         <img src={icons.alertTriangle} alt="" />
-        <span>
-          Out of
-          <br />
-          Stock
-        </span>
+        <span className="swipe__oos-text">{t('outOfStock')}</span>
       </button>
       <div
         className={cx('swipe__content', drag == null && 'swipe__content--settle')}
-        style={{ transform: x ? `translateX(${x}px)` : undefined }}
+        style={{ transform: x ? `translateX(${x * sgn}px)` : undefined }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}

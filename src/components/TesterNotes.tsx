@@ -43,6 +43,11 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     lines.push('Slide a card to the left to mark it Out of Stock.');
     if (LOCS.some((l) => l.unlockedBy && !s.unlocked[l.id])) lines.push('Chao Tuoi’s second location appears after its first location is counted.');
     if (allDone(s)) lines.push('Everything is checked: Complete is enabled.');
+  } else if (s.screen === 'language') {
+    title = 'Language';
+    lines.push('Opened from the ? icon on Audits (A1). English is the default; Spanish and Arabic (RTL) are available.');
+    lines.push('Picking one applies it and returns to Audits. The EN / ES / AR buttons in the left panel switch it anywhere.');
+    lines.push('The orange task banner and this box stay in English.');
   } else if (s.screen === 'summary') {
     title = 'Summary';
     lines.push('“Got it!” or the back arrow restarts the prototype.');

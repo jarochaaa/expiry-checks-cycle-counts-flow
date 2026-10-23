@@ -3,15 +3,17 @@ import { TASK_DATE } from '../data';
 import type { Action } from '../state';
 import { icons } from './icons';
 import { Chips, TaskCardInfo } from './ui';
+import { useI18n } from '../i18n';
 
 /** "Do you want to start this task?" bottom sheet on the Audits list. */
 export function StartSheet({ taskId, dispatch }: { taskId: string; dispatch: Dispatch<Action> }) {
+  const { t } = useI18n();
   return (
     <div className="p-overlay pl" onClick={() => dispatch({ type: 'closeSheet' })}>
       <div className="p-sheet" role="dialog" aria-label="Start task" onClick={(e) => e.stopPropagation()}>
         <img className="p-sheet__illustration" src={icons.startIllustration} alt="" />
-        <p className="p-sheet__title">Do you want to start this task?</p>
-        <button type="button" className="p-sheet__close" aria-label="Close" onClick={() => dispatch({ type: 'closeSheet' })}>
+        <p className="p-sheet__title">{t('startTitle')}</p>
+        <button type="button" className="p-sheet__close" aria-label={t('close')} onClick={() => dispatch({ type: 'closeSheet' })}>
           <img src={icons.xWhite} alt="" />
         </button>
         <div className="ticket" style={{ width: '100%' }}>
@@ -21,7 +23,7 @@ export function StartSheet({ taskId, dispatch }: { taskId: string; dispatch: Dis
           </div>
         </div>
         <button type="button" className="p-btn" onClick={() => dispatch({ type: 'start' })}>
-          Start
+          {t('start')}
         </button>
       </div>
     </div>
@@ -30,15 +32,14 @@ export function StartSheet({ taskId, dispatch }: { taskId: string; dispatch: Dis
 
 /** "You are about to send the following inventory count" sheet. */
 export function SendSheet({ taskId, skus, alerts, dispatch }: { taskId: string; skus: number; alerts: number; dispatch: Dispatch<Action> }) {
+  const { t, rich } = useI18n();
   return (
     <div className="overlay overlay--sheet">
       <div className="sheet" role="dialog" aria-label="Send inventory count">
         <p className="sheet__prompt sheet__prompt--large">
-          You are about to send the following
-          <br />
-          inventory count:
+          {rich('sendTitle')}
         </p>
-        <button type="button" className="sheet__close" aria-label="Close" onClick={() => dispatch({ type: 'closeSheet' })}>
+        <button type="button" className="sheet__close" aria-label={t('close')} onClick={() => dispatch({ type: 'closeSheet' })}>
           <img src={icons.arrowDown} alt="" />
         </button>
         <div className="task-card task-card--plain task-card--shadow">
@@ -49,7 +50,7 @@ export function SendSheet({ taskId, skus, alerts, dispatch }: { taskId: string; 
           <button type="button" className="btn btn--mint" style={{ flex: 'none', width: 125, height: 34 }} onClick={() => dispatch({ type: 'send' })}>
             <span className="btn__label">
               <img src={icons.checkCircle} alt="" />
-              Send
+              {t('send')}
             </span>
           </button>
         </div>
