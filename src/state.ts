@@ -244,7 +244,7 @@ export function reducer(s: State, a: Action): State {
       const qty = sh.value ? parseInt(sh.value, 10) : 0;
       const exists = s.pdp.batches.some((b) => b.date === sh.date);
       const batches = exists ? s.pdp.batches.map((b) => (b.date === sh.date ? { ...b, qty } : b)) : [...s.pdp.batches, { date: sh.date, qty }];
-      return { ...s, pdp: { ...s.pdp, batches, banner: false, sheet: null } };
+      return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet: null } };
     }
     case 'openCalendar':
       return withSheet(s, { kind: 'calendar', viewY: 2026, viewM: 7, y: 2026, m: 7, d: 17 });
