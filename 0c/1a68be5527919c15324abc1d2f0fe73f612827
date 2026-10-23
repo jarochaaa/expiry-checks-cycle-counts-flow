@@ -1,0 +1,81 @@
+src/components/Sheets.tsx
+  s_1bf2109d03fa68::t_f7468693f585d6 2,7-8,10-21,23-25,32,45
+src/state.ts
+  s_1bf2109d03fa68::t_c66d91714b75be 1-2,5-6,15-16,19-25,27-28,30,40-43,55-57,68-69,72-74,83-84,94-95,101-111,163-164,166,175,182,184,190-191,194-197,203,207-228,230-254,258,261,274,309-311,313-315,318,320-323,326-341,347-385,396-409,413-416,418-422
+src/components/icons.ts
+  s_1bf2109d03fa68::t_f7468693f585d6 25-38,42
+src/components/LocationCard.tsx
+  s_1bf2109d03fa68::t_a868ac1f81558a 25,28,62-70
+  s_1bf2109d03fa68::t_1591bf49164a7e 71
+src/screens/SkuList.tsx
+  s_1bf2109d03fa68::t_176682ac65148a 2,19
+src/data.ts
+  s_1bf2109d03fa68::t_c66d91714b75be 67-97
+src/App.tsx
+  s_1bf2109d03fa68::t_176682ac65148a 3,6,9-10,57,59,61-63
+src/screens/Pdp.tsx
+  s_1bf2109d03fa68::t_176682ac65148a 1-201
+src/screens/Summary.tsx
+  s_1bf2109d03fa68::t_176682ac65148a 2,7,16
+src/tasks.ts
+  s_1bf2109d03fa68::t_c66d91714b75be 26-27,35
+src/styles/components.css
+  s_1bf2109d03fa68::t_a868ac1f81558a 231-247
+  s_1bf2109d03fa68::t_ce42c45744e1ce 1069-1725
+src/styles/tokens.css
+  s_1bf2109d03fa68::t_ce42c45744e1ce 44-58
+src/screens/Audits.tsx
+  s_1bf2109d03fa68::t_f7468693f585d6 1-101
+index.html
+  s_1bf2109d03fa68::t_ce42c45744e1ce 17
+src/assets/icons2/arrow-backward.svg
+  s_1bf2109d03fa68::t_5b5065d51c25fc 1-5
+src/assets/icons2/cal-next.svg
+  s_1bf2109d03fa68::t_4be2945ba7cdc5 1-5
+src/assets/icons2/cal-prev.svg
+  s_1bf2109d03fa68::t_ffb10f279bc425 1-5
+src/assets/icons2/caret.svg
+  s_1bf2109d03fa68::t_fe50061df01b0d 1-5
+src/assets/icons2/divider-active.svg
+  s_1bf2109d03fa68::t_b1233594b1e2db 1-12
+src/assets/icons2/divider-hair.svg
+  s_1bf2109d03fa68::t_3389487e35abfa 1-5
+src/assets/icons2/help-circle.svg
+  s_1bf2109d03fa68::t_6ba72e8e1f9070 1
+src/assets/icons2/info-circle.svg
+  s_1bf2109d03fa68::t_501f42f6dca41d 1
+src/assets/icons2/line.svg
+  s_1bf2109d03fa68::t_dcd2ba91355f5b 1-3
+src/assets/icons2/nav-audits.svg
+  s_1bf2109d03fa68::t_bcf7c22eb6bc02 1-5
+src/assets/icons2/nav-more.svg
+  s_1bf2109d03fa68::t_cb360f74be5c0a 1-5
+src/assets/icons2/nav-orders.svg
+  s_1bf2109d03fa68::t_75ec52a9c3501e 1-5
+src/assets/icons2/nav-receiving.svg
+  s_1bf2109d03fa68::t_34ca22207cff01 1-5
+src/assets/icons2/pencil.svg
+  s_1bf2109d03fa68::t_f53507ba154474 1-5
+src/assets/icons2/start-illustration.svg
+  s_1bf2109d03fa68::t_8fd8b63c90905f 1-37
+src/assets/icons2/user-circle.svg
+  s_1bf2109d03fa68::t_1700ed8f461197 1
+src/assets/icons2/x-white.svg
+  s_1bf2109d03fa68::t_4f618ec435cd8e 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "0c1a68be5527919c15324abc1d2f0fe73f612827",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
