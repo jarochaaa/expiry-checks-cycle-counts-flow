@@ -260,7 +260,7 @@ const RCALL: Action[] = [...RC1, ...count('burine', '30')];
 // Wrong total typed on the last SKU → discrepancy shown inside the modal
 const DM: Action[] = [...S2, ...entered('burine', '25'), { type: 'submit' }];
 
-const CODES: Record<string, string> = {"tasks": "A1", "assign": "A2", "skus": "B1", "sita2-todo": "B2", "burine-todo": "B3", "burine-swipe": "B4", "burine-banner": "B5", "burine-swipe2": "B6", "alert-network": "B7", "alert-wrong": "B8", "sita1-processed": "C1", "sita2-processed": "C2", "burine-rc-processed": "C3", "burine-rc-done": "C4", "all-done": "C5", "alert-complete": "C6", "sita1-open": "D1", "sita1-typing": "D2", "sita1-entered": "D3", "sita2-open": "D4", "sita2-typing": "D5", "sita2-entered": "D6", "burine-open": "D7", "burine-typing": "D8", "burine-entered": "D9", "burine-rc-open": "D10", "burine-rc-entered": "D11", "burine-dm": "D12", "burine-dm-typing": "D13", "detail": "E1", "send": "F1", "alert-send": "F2", "loading": "G1", "summary": "H1"};
+const CODES: Record<string, string> = {"tasks": "A1", "assign": "A2", "skus": "B1", "sita2-todo": "B2", "burine-todo": "B3", "burine-swipe": "B4", "burine-banner": "B5", "burine-swipe2": "B6", "alert-network": "B7", "alert-wrong": "B8", "sita1-processed": "C1", "sita2-processed": "C2", "burine-rc-processed": "C3", "burine-rc-done": "C4", "all-done": "C5", "alert-complete": "C6", "sita1-open": "D1", "sita1-typing": "D2", "sita1-entered": "D3", "sita2-open": "D4", "sita2-typing": "D5", "sita2-entered": "D6", "burine-open": "D7", "burine-typing": "D8", "burine-entered": "D9", "burine-rc-open": "D10", "burine-rc-entered": "D11", "burine-dm": "D12", "burine-rc-typing": "D14", "detail": "E1", "send": "F1", "alert-send": "F2", "loading": "G1", "summary": "H1"};
 const TITLES: Record<string, string> = {"A": "Task list", "B": "SKU list · To be processed", "C": "SKU list · Processed", "D": "Scan modal", "E": "Product details", "F": "Send sheet", "G": "Sending", "H": "Summary"};
 const P = (_group: string, id: string, label: string, actions: Action[]): Preset => {
   const code = CODES[id];
@@ -297,10 +297,10 @@ const RAW: Preset[] = [
   P('Discrepancy & recount', 'burine-swipe2', 'Recount · Burine swiped again', [...RC1, { type: 'swipe', loc: 'burine' }]),
   P('Discrepancy & recount', 'burine-rc-processed', 'Processed · Burine recount (00)', RC2.slice(0, -1)),
   P('Discrepancy & recount', 'burine-rc-open', 'Burine recount · scanned', [...RC1, ...scan('burine')]),
+  P('Discrepancy & recount', 'burine-rc-typing', 'Burine recount · typing', [...RC1, ...typing('burine')]),
   P('Discrepancy & recount', 'burine-rc-entered', 'Burine recount · quantity entered', [...RC1, ...entered('burine', '30')]),
   P('Discrepancy & recount', 'burine-rc-done', 'All processed · after recount', RCALL),
   P('Discrepancy & recount', 'burine-dm', 'Stock Discrepancy · inside the modal', DM),
-  P('Discrepancy & recount', 'burine-dm-typing', 'Modal recount · quantity entered', [...DM, { type: 'type', value: '30' }]),
 
   P('End', 'all-done', 'All processed · Complete', ALL),
   P('End', 'send', 'Send inventory count', [...ALL, { type: 'complete' }]),
@@ -311,12 +311,35 @@ const RAW: Preset[] = [
 const codeKey = (c: string) => c.charCodeAt(0) * 100 + parseInt(c.slice(1), 10);
 export const PRESETS: Preset[] = [...RAW].sort((a, b) => codeKey(a.code) - codeKey(b.code));
 
-/** View code of the state the tester is looking at (matches a preset exactly, else null). */
-export function codeFor(s: State): string | null {
-  const key = (x: State) => JSON.stringify({ ...x, alertId: 0, alert: x.alert && { text: x.alert.text } });
-  const k = key(s);
-  for (const p of PRESETS) {
-    if (key(p.actions.reduce(reducer, { ...initialState })) === k) return p.code;
+/**
+ * View code (letter + use case) of the state the tester is looking at, derived from the state itself so it
+ * never drops out during free play. Keep in sync with CODES above.
+ */
+export function codeFor(s: State): string {
+  if (s.screen === 'tasks') return s.sheet === 'assign' ? 'A2' : 'A1';
+  if (s.screen === 'summary') return 'H1';
+  if (s.sending) return 'G1';
+  if (s.sheet === 'send') return s.alert ? 'F2' : 'F1';
+  if (s.detail) return 'E1';
+  if (s.scan) {
+    const { loc, focused, value, banner } = s.scan;
+    const step = value ? 2 : focused ? 1 : 0; // 0 scanned · 1 typing · 2 quantity entered
+    if (loc === 'sita1') return `D${1 + step}`;
+    if (loc === 'sita2') return `D${4 + step}`;
+    if (banner) return 'D12';
+    if (s.recount.burine) return ['D10', 'D14', 'D11'][step];
+    return `D${7 + step}`;
   }
-  return null;
+  const done = LOC_ORDER.filter((id) => s.locs[id].done);
+  if (s.tab === 'done') {
+    if (s.alert) return 'C6';
+    if (s.locs.burine.oos) return 'C3';
+    if (allDone(s)) return s.discrepancies > 0 ? 'C4' : 'C5';
+    return done.length >= 2 ? 'C2' : 'C1';
+  }
+  if (s.alert) return s.alert.text === ALERTS.network ? 'B7' : 'B8';
+  if (s.swipe) return s.recount.burine ? 'B6' : 'B4';
+  if (s.banner) return 'B5';
+  if (allDone(s)) return 'C5';
+  return done.length === 0 ? 'B1' : done.length === 1 ? 'B2' : 'B3';
 }
