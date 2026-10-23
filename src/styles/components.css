@@ -1392,15 +1392,14 @@ button.ticket {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-top: 16px;
 }
 .pdp__scroll > * {
   flex-shrink: 0;
 }
 .pdp__image {
   position: relative;
-  height: 232px;
-  padding-top: 72px;
+  height: 248px;
+  padding-top: 88px;
   background: #fff;
 }
 .pdp__image-box {
