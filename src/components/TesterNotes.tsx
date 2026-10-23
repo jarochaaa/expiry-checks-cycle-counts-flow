@@ -8,6 +8,7 @@ const sum = (n: number[]) => n.reduce((a, b) => a + b, 0);
 export function TesterNotes({ s, code }: { s: State; code: string }) {
   let title = 'Tester notes';
   const lines: string[] = [];
+  let match: { date: string; qty: number }[] | null = null;
 
   if (s.pdp) {
     const loc = LOC_BY_ID[s.pdp.loc];
@@ -23,7 +24,8 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
       const counted = all.filter((l) => l !== loc.id && s.locs[l].done).reduce((n, l) => n + s.locs[l].count, 0);
       if (counted) lines.push(`Already counted elsewhere: ${counted}. This location needs ${p.expected - counted} to match.`);
     }
-    lines.push(`To match: type ${loc.pass.join(' / ')} (${sum(loc.pass)} units).`);
+    match = loc.dates.map((date, i) => ({ date, qty: loc.pass[i] }));
+    lines.push(`Those quantities add up to ${sum(loc.pass)} units at this location.`);
     if (idx === all.length) {
       const others = all.filter((l) => l !== loc.id).reduce((n, l) => n + s.locs[l].count, 0);
       lines.push(`To see a Stock Discrepancy: type a total other than ${p.expected - others}, then Confirm.`);
@@ -50,6 +52,17 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     <aside className="tester-notes" aria-label="Tester notes">
       <div className="tester-notes__tag">Facilitator hints · view {code}</div>
       <h2>{title}</h2>
+      {match && (
+        <div className="expect">
+          <p className="expect__title">Type these quantities to match</p>
+          {match.map((m) => (
+            <div key={m.date} className="expect__row">
+              <span className="expect__date">{m.date}</span>
+              <span className="expect__qty">{m.qty}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <ul>
         {lines.map((l, i) => (
           <li key={i}>{l}</li>
