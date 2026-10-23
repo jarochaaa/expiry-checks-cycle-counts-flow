@@ -53,7 +53,7 @@ export default function App() {
       </div>
 
       <div className="app">
-        <TaskBanner task={taskFor(s)} />
+        <TaskBanner task={taskFor(s)} code={codeFor(s)} />
 
         <div className="app__view">
           {s.screen === 'tasks' && <TaskList doneCount={doneCount} dispatch={dispatch} />}
