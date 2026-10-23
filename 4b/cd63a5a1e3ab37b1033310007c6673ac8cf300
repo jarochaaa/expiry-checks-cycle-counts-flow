@@ -1,0 +1,57 @@
+src/assets/icons2/chevron-lang.svg
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 1
+src/components/LocationCard.tsx
+  s_1bf2109d03fa68::t_c896a92d0c1dbb 6,43
+  s_1bf2109d03fa68::t_956b9826cc4df2 23,61
+src/screens/Summary.tsx
+  s_1bf2109d03fa68::t_c896a92d0c1dbb 6,9,12,14,23
+src/components/Sheets.tsx
+  s_1bf2109d03fa68::t_c896a92d0c1dbb 6,10,15-16,26,35,40,42,53
+src/components/SwipeOOS.tsx
+  s_1bf2109d03fa68::t_e9563406d005a8 5,33-34,60,103,110,114
+src/components/ui.tsx
+  s_1bf2109d03fa68::t_c896a92d0c1dbb 4,19,25,39,43
+src/i18n.tsx
+  s_1bf2109d03fa68::t_20cea1ed3c3d0d 1-196
+src/screens/Audits.tsx
+  s_1bf2109d03fa68::t_20cea1ed3c3d0d 7,10,18-19,33,40-41,44,46,48,54,58,67-68,73,77,86,90,94,98
+index.html
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 17
+src/state.ts
+  s_1bf2109d03fa68::t_a13a12cd134378 3,6,40-41,77,102-103,131-132,211-214,308,314,353,375,432
+src/screens/Pdp.tsx
+  s_1bf2109d03fa68::t_e9563406d005a8 8,30,41-42,53,59,68-70,74-75,78,81,94,97,125,135,157,169,176-177,179,185-186,191,196-197,207,210
+src/screens/SkuList.tsx
+  s_1bf2109d03fa68::t_c896a92d0c1dbb 10,13,23,26,32,36,54
+src/components/icons.ts
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 25,43
+src/tasks.ts
+  s_1bf2109d03fa68::t_a13a12cd134378 35
+src/App.tsx
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 11-12,37,39,43-49,70,72,88,94
+src/components/TesterNotes.tsx
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 46-50
+src/screens/Language.tsx
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 1-33
+src/styles/tokens.css
+  s_1bf2109d03fa68::t_d3ee8c5d4d84d7 3,45
+src/styles/components.css
+  s_1bf2109d03fa68::t_00e0d1fd245833 1949-1953
+  s_1bf2109d03fa68::t_c015768e920aac 28,521,809,844,879,1203,1233,1805-1948
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "4bcd63a5a1e3ab37b1033310007c6673ac8cf300",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
