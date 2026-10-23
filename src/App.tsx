@@ -40,13 +40,6 @@ export default function App() {
     <div className="stage">
       <nav className="proto-nav" aria-label="Prototype flow">
         <div className="proto-nav__title">Cycle Count · flow</div>
-        <div className="proto-nav__langs" role="group" aria-label="Language">
-          {LANGS.map((l) => (
-            <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
-              {l.id.toUpperCase()}
-            </button>
-          ))}
-        </div>
         {PRESETS.map((p, i) => (
           <div key={p.id} style={{ display: 'contents' }}>
             {(i === 0 || PRESETS[i - 1].group !== p.group) && <div className="proto-nav__sub">{p.group}</div>}
@@ -59,6 +52,15 @@ export default function App() {
       </nav>
 
       <TesterNotes s={s} code={codeFor(s)} />
+
+      <div className="lang-switch" role="group" aria-label="App language">
+        <span>App language</span>
+        {LANGS.map((l) => (
+          <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
+            {l.label}
+          </button>
+        ))}
+      </div>
 
       <div className="view-tag" aria-hidden>
         View <b>{codeFor(s) ?? '·'}</b>
