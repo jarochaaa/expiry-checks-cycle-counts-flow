@@ -73,7 +73,7 @@ const zeroed = (b: Batch[]): Batch[] => b.map((x) => ({ ...x, qty: 0 }));
 export const initialState: State = {
   screen: 'audits',
   auditsTab: 'count',
-  taskId: '67890',
+  taskId: '67891',
   sheet: null,
   sending: false,
   tab: 'todo',
@@ -320,7 +320,7 @@ export interface Preset {
   actions: Action[];
 }
 
-const START: Action[] = [{ type: 'openTicket', id: '67890' }, { type: 'start' }];
+const START: Action[] = [{ type: 'openTicket', id: '67891' }, { type: 'start' }];
 const scan = (loc: LocId): Action[] => [{ type: 'scan', loc }];
 const qty = (date: string, v: string): Action[] => [{ type: 'openQty', date }, { type: 'qtyType', value: v }, { type: 'qtyDone' }];
 /** Opens the product page and types a quantity for each expiry date of the location. */
@@ -365,7 +365,7 @@ const SITA_OPEN: Action[] = [...START, ...scan('sita1'), hint];
 const RAW: Preset[] = [
   P('audits', 'Count Tasks · Cycle Count', []),
   P('removal', 'Removal Tasks', [{ type: 'auditsTab', tab: 'removal' }]),
-  P('start', 'Do you want to start this task?', [{ type: 'openTicket', id: '67890' }]),
+  P('start', 'Do you want to start this task?', [{ type: 'openTicket', id: '67891' }]),
 
   P('skus', 'Nothing counted (3 products)', START),
   P('sita-done-todo', 'Sita counted · Burine + Chao Tuoi left', S1),

@@ -131,9 +131,23 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
   const loc = LOC_BY_ID[pdp.loc];
   const product = PRODUCTS[loc.product];
   const total = batchTotal(pdp.batches);
+
+  // After typing a quantity, bring the next empty batch card into view.
+  const prev = useRef<{ kind?: string; date?: string; isNew?: boolean }>({});
+  const scroller = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const was = prev.current;
+    prev.current = pdp.sheet?.kind === 'qty' ? { kind: 'qty', date: pdp.sheet.date, isNew: pdp.sheet.isNew } : {};
+    if (was.kind === 'qty' && !pdp.sheet && !was.isNew) {
+      const i = pdp.batches.findIndex((b) => b.date === was.date);
+      const next = pdp.batches.slice(i + 1).find((b) => b.qty === 0);
+      if (next) scroller.current?.querySelector(`[data-date="${next.date}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [pdp.sheet, pdp.batches]);
+
   return (
     <div className="pdp pl">
-      <div className="pdp__scroll">
+      <div className="pdp__scroll" ref={scroller}>
         <div className="pdp__image">
           <button type="button" className="pdp__back" aria-label="Back" onClick={() => dispatch({ type: 'pdpBack' })}>
             <img src={icons.pdpBack} alt="" />
@@ -169,7 +183,7 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
             {recount && <span className="recount-tag">Recount</span>}
           </div>
           {pdp.batches.map((b) => (
-            <section key={b.date} className="batch">
+            <section key={b.date} data-date={b.date} className="batch">
               <div className="batch__title">
                 <span>Count all items with Expiry Date</span>
                 <span className="ptag">{b.date}</span>

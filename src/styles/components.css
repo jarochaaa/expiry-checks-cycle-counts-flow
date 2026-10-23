@@ -1249,26 +1249,35 @@ button.ticket {
   display: flex;
   gap: 8px;
   padding: 0 8px;
+  box-sizing: border-box;
   background: var(--pl-flat);
   border-top: 1px solid var(--pl-border);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .bottom-nav__item {
   position: relative;
-  flex: 1;
+  flex: 1 1 0;
+  width: 0;
   min-width: 0;
+  height: 74px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: 4px;
-  padding: 12px 0 16px;
+  padding: 12px 0 0;
+  box-sizing: border-box;
+  text-align: center;
   font: 700 10px/1.6 var(--font-pelican);
   letter-spacing: 0.2px;
   color: var(--pl-text-tertiary);
 }
 .bottom-nav__item img {
+  flex: none;
+  display: block;
   width: 24px;
   height: 24px;
+  margin: 0 auto;
   opacity: 0.56;
 }
 .bottom-nav__item--on {

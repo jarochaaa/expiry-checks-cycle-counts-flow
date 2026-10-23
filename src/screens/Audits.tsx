@@ -69,11 +69,11 @@ export function Audits({ tab, dispatch }: { tab: AuditsTab; dispatch: Dispatch<A
         <div className="audits__scroll">
           <p className="audits__section">In progress</p>
           {data.inProgress.map((t) => (
-            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
+            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Level' ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
           ))}
           <p className="audits__section">To do</p>
           {data.todo.map((t) => (
-            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
+            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Level' ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
           ))}
         </div>
 
