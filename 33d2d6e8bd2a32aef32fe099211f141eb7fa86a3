@@ -1,0 +1,34 @@
+src/web/InventoryManagement.tsx
+  s_1bf2109d03fa68::t_5f9ecd6dbeb56b 1-40,43-59,61-142,155-157
+  s_1bf2109d03fa68::t_7b55c33bf703b0 41-42,60,143-154
+src/web/web.css
+  s_1bf2109d03fa68::t_5f9ecd6dbeb56b 1-4,6-367
+  s_1bf2109d03fa68::t_7b55c33bf703b0 5
+src/styles/base.css
+  s_1bf2109d03fa68::t_7b55c33bf703b0 118-143,147,149-169
+  s_1bf2109d03fa68::t_58c73237c275e2 144-146,148
+src/assets/web/carrot.svg
+  s_1bf2109d03fa68::t_00ac2f3a6be616 1-8
+index.html
+  s_1bf2109d03fa68::t_7b55c33bf703b0 17
+src/styles/components.css
+  s_1bf2109d03fa68::t_7b55c33bf703b0 1986-2006
+src/App.tsx
+  s_1bf2109d03fa68::t_7b55c33bf703b0 12-13,56-57,83-104
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "33d2d6e8bd2a32aef32fe099211f141eb7fa86a3",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
