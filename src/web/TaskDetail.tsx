@@ -4,210 +4,342 @@ import type { LocId, ProductId } from '../data';
 import { LOC_GROUPS } from './CreateTask';
 import type { CreatedTask } from './CreateTask';
 
-/** Counts sent back from Pelican: location → expiry date (DD/MM/YYYY) → units counted */
+/** What Pelican sends back: counts per location/expiry date, and per product the first count and the recount (if any). */
 export interface TaskResult {
   at: string;
   counted: Partial<Record<LocId, Record<string, number>>>;
+  products: Partial<Record<ProductId, { first: number; recount: number | null }>>;
 }
 
-const Ico = ({ children, size = 12 }: { children: React.ReactNode; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    {children}
-  </svg>
-);
-const dl = <Ico><path d="M12 3v12M7 11l5 5 5-5M4 21h16" /></Ico>;
-const clip = <Ico size={14}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4h6v3H9zM9 14l2 2 4-4" /></Ico>;
-const down = <Ico><path d="M12 4v16M6 14l6 6 6-6" /></Ico>;
-const funnel = <Ico size={18}><path d="M3 4h18l-7 9v6l-4 2v-8L3 4z" /></Ico>;
-const layers = <Ico size={14}><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></Ico>;
-const bottle = <Ico size={14}><path d="M10 3h4v4l2 3v11H8V10l2-3V3z" /></Ico>;
-const minus = (
-  <svg width="17" height="16" viewBox="0 0 17 16" aria-hidden>
-    <circle cx="8.4" cy="8" r="7.8" fill="#000" />
-    <rect x="4.6" y="7" width="7.6" height="2" rx="1" fill="#fff" />
-  </svg>
-);
-const plus = (
-  <svg width="17" height="16" viewBox="0 0 17 16" aria-hidden>
-    <circle cx="8.4" cy="8" r="7.8" fill="#000" />
-    <rect x="4.6" y="7" width="7.6" height="2" rx="1" fill="#fff" />
-    <rect x="7.4" y="4.2" width="2" height="7.6" rx="1" fill="#fff" />
-  </svg>
-);
-
-/** Stepper pill (Input-Discrepancy): -  n  + */
-function Adjust({ start }: { start: number }) {
-  const [v, setV] = useState(start);
-  const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
-  return (
-    <span className="td-adj">
-      <button type="button" aria-label="Decrease adjustment" onClick={() => setV(v - 1)}>
-        {minus}
-      </button>
-      <b>{sign(v)}</b>
-      <button type="button" aria-label="Increase adjustment" onClick={() => setV(v + 1)}>
-        {plus}
-      </button>
-    </span>
-  );
-}
-
-const Reason = () => (
-  <button type="button" className="td-reason">
-    Select reason
-    {down}
-  </button>
-);
+export const expectedUnits = (p: ProductId) => LOC_GROUPS(p).reduce((n, g) => n + g.rows.reduce((m, r) => m + r.stock, 0), 0);
+const finalCount = (res: TaskResult, p: ProductId) => {
+  const x = res.products[p];
+  return x ? (x.recount ?? x.first) : 0;
+};
+/** Products whose final count still differs from what the system expects. */
+export const discrepantProducts = (t: CreatedTask, res?: TaskResult): ProductId[] => (res ? t.products.filter((p) => finalCount(res, p) !== expectedUnits(p)) : []);
 
 export interface Totals {
   skus: number;
-  units: number;
+  items: number;
   discrepancies: number;
 }
-
-/** Derived numbers for a task: shared by the collapsed row (status) and the expanded panel. */
-export function taskTotals(t: CreatedTask, res?: TaskResult): Totals {
-  let units = 0;
-  let discrepancies = 0;
-  for (const p of t.products)
-    for (const g of LOC_GROUPS(p))
-      for (const r of g.rows) {
-        units += res ? (res.counted[g.id]?.[r.date] ?? 0) : r.stock;
-        if (res && (res.counted[g.id]?.[r.date] ?? 0) !== r.stock) discrepancies++;
-      }
-  return { skus: t.skus, units, discrepancies };
+export function taskTotals(t: CreatedTask, res?: TaskResult, adjusted?: boolean): Totals {
+  return { skus: t.skus, items: t.products.reduce((n, p) => n + expectedUnits(p), 0), discrepancies: adjusted ? 0 : discrepantProducts(t, res).length };
 }
 
-export function TaskDetail({ task, res, date, time }: { task: CreatedTask; res?: TaskResult; date: string; time: string }) {
-  const tot = taskTotals(task, res);
-  const stamp = (
-    <>
-      {date}
-      <i>{time}</i>
-    </>
+const Svg = ({ children, size = 16, sw = 2 }: { children: React.ReactNode; size?: number; sw?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    {children}
+  </svg>
+);
+const I = {
+  dl: <Svg size={18}><path d="M12 3v12M7 11l5 5 5-5M4 21h16" /></Svg>,
+  pencil: <Svg size={18} sw={2.4}><path d="M4 20l4-1 11-11-3-3L5 16l-1 4zM14 7l3 3" /></Svg>,
+  store: <Svg size={18} sw={2.4}><rect x="3" y="4" width="18" height="5" /><path d="M5 9v11h14V9M10 13h4" /></Svg>,
+  created: <Svg size={20} sw={2.4}><path d="M20 12a8 8 0 1 1-3-6.2M20 4v5h-5" /></Svg>,
+  up: <Svg size={14} sw={2.6}><path d="M6 15l6-6 6 6" /></Svg>,
+  sku: <Svg size={14}><path d="M10 3h4v4l2 3v11H8V10l2-3V3z" /></Svg>,
+  items: <Svg size={14}><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></Svg>,
+  disc: <Svg size={14}><path d="M4 6h10M4 12h10M4 18h6M17 14l3 3 3-5" /></Svg>,
+  bulb: <Svg size={34} sw={2}><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z" /></Svg>,
+  close: <Svg size={18} sw={2.6}><path d="M6 6l12 12M18 6L6 18" /></Svg>,
+  minus: <Svg size={18} sw={2.6}><circle cx="12" cy="12" r="9.5" /><path d="M8 12h8" /></Svg>,
+  plus: <Svg size={18} sw={2.6}><circle cx="12" cy="12" r="9.5" /><path d="M8 12h8M12 8v8" /></Svg>,
+  info: <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="11" fill="#000" /><path d="M12 11v6M12 7v1.5" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" /></svg>,
+  check: <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="11" fill="#1db954" /><path d="M7 12.5l3.5 3.5L17 9" stroke="#fff" strokeWidth="2.6" fill="none" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+};
+const ring = (
+  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="#fff" aria-hidden>
+    <circle cx="13" cy="13" r="9" strokeWidth="2.2" />
+    <circle cx="13" cy="13" r="4.2" strokeWidth="2.2" strokeDasharray="3 2" />
+  </svg>
+);
+const dot = (ok: boolean) =>
+  ok ? (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="11" fill="#1db954" /></svg>
+  ) : (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="11" fill="#e1262d" /><path d="M7 12h10" stroke="#fff" strokeWidth="3" strokeLinecap="round" /></svg>
   );
+
+const ymd = (dmy: string) => dmy.split('/').reverse().join('.');
+
+export function TaskDetail({ task, res, adjusted, status, date, time, onClose, onReview }: { task: CreatedTask; res?: TaskResult; adjusted: boolean; status: ReactNodeLike; date: string; time: string; onClose: () => void; onReview: () => void }) {
+  const tot = taskTotals(task, res, adjusted);
+  const disc = discrepantProducts(task, res);
+  const picker = res ? 'Pelican user' : 'Unassigned';
+  const stamp = `${date.split('.').reverse().join('.')} ${time}:00`;
   return (
-    <div className="td">
-      <div className="td__top">
-        <div className="td__kpis">
-          <div className="td-kpi">
-            <span className="td-kpi__icon">{layers}</span>
-            <span className="td-kpi__label">Total SKUs</span>
-            <b>{tot.skus}</b>
-          </div>
-          <div className="td-kpi">
-            <span className="td-kpi__icon">{layers}</span>
-            <span className="td-kpi__label">Total Units</span>
-            <b>{tot.units}</b>
-          </div>
-          <div className="td-kpi">
-            <span className="td-kpi__icon">{bottle}</span>
-            <span className="td-kpi__label">Discrepancies</span>
-            <b>{tot.discrepancies}</b>
-          </div>
-        </div>
-        <p className="td__picker">Picker: {res ? 'Pelican user' : 'Unassigned'}</p>
-      </div>
-
-      <div className="td__actions">
-        <b>Actions:</b>
-        <button type="button" className="td-btn">
-          {dl}
-          Download
-        </button>
-        <button type="button" className="td-btn td-btn--go" disabled={!res}>
-          {clip}
-          Adjust and complete
+    <div className="tdv">
+      <div className="tdv__bar">
+        <span>{task.id}</span>
+        <button type="button" aria-label="Download" className="tdv__icon">
+          {I.dl}
         </button>
       </div>
-
-      <button type="button" className="td__filter">
-        <span>
-          {funnel}
-          <b>Filter</b>
+      <div className="tdv__head">
+        <span className="tdv__store">
+          {I.store}
+          <b>QA_001_Test_Store</b>
         </span>
-        <span className="td__filter-btn">{down}</span>
-      </button>
+        <span className="tdv__ids">
+          Cycle Count ID: <b>#{task.id}</b>
+          <br />
+          Batch ID: <b>#{3561000 + (Number(task.id) % 1000)}</b>
+        </span>
+        <span className="tdv__picker">
+          <b>Picker</b>: {picker}
+        </span>
+        <span className="tdv__status">{status}</span>
+        <span className="tdv__actions">
+          Actions:
+          <button type="button" aria-label="Edit" className="tdv__icon">
+            {I.pencil}
+          </button>
+          {res && disc.length > 0 && !adjusted && (
+            <button type="button" className="tdv__disc" aria-label="Review discrepancies" onClick={onReview}>
+              {ring}
+            </button>
+          )}
+        </span>
+        <button type="button" className="tdv__chev" aria-label={`Collapse task ${task.id}`} onClick={onClose}>
+          {I.up}
+        </button>
+      </div>
 
-      <div className="td__table">
-        <div className="td-head">
-          <span className="td-head__sku">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M8 4v16M4 8l4-4 4 4M16 20V4M12 16l4 4 4-4" />
-            </svg>
-            <em>Image</em>
-            <em>SKU</em>
-          </span>
-          <span>Location</span>
-          <span>
-            Expiry
-            <br />
-            date
-          </span>
-          <span>
-            Stock on
-            <br />
-            hand
-          </span>
-          <span>Counted/ removed</span>
-          <span>Task</span>
-          <span>Date</span>
-          <span>Adjustment</span>
+      <div className="tdv__panel">
+        <div className="tdv__top">
+          <div className="tdv__kpis">
+            <div className="tdv-kpi">
+              <span>{I.sku}Total SKUs</span>
+              <b>{tot.skus}</b>
+            </div>
+            <div className="tdv-kpi">
+              <span>{I.items}Total Items</span>
+              <b>{tot.items}</b>
+            </div>
+            <div className="tdv-kpi">
+              <span>{I.disc}Discrepancies</span>
+              <b>{tot.discrepancies}</b>
+            </div>
+          </div>
+          <div className="tdv__meta">
+            <span>
+              {I.created}
+              <b>Created by: Auto Creation</b>
+            </span>
+            <span>
+              <b>Picker</b>: {picker}
+            </span>
+          </div>
         </div>
-        <div className="td__list">
-          {task.products.map((p: ProductId) => {
+
+        <div className="tdv__table">
+          <div className="tdv__row tdv__row--head">
+            <span>PRODUCT &amp; SKU</span>
+            <span>STOCK ON HAND</span>
+            <span>COUNTED</span>
+            <span>
+              RE-COUNTED
+              <em>(From Pelican)</em>
+            </span>
+            <span>
+              RE-COUNTED
+              <em>(From IM)</em>
+            </span>
+            <span className="tdv__date-h">DATE {I.info}</span>
+            <span />
+          </div>
+          {task.products.map((p) => {
             const pr = PRODUCTS[p];
+            const exp = expectedUnits(p);
+            const r = res?.products[p];
+            const isDisc = disc.includes(p);
             return (
-              <article key={p} className="td-card">
-                <div className="td-prod">
-                  <span className="td-prod__img">
-                    <img src={pr.image} alt="" />
+              <div key={p} className="tdv__row">
+                <span className="tdv__prod">
+                  <img src={pr.image} alt="" />
+                  <span>
+                    {pr.name}
+                    <small>
+                      SKU: <b>{pr.sku}</b>
+                    </small>
                   </span>
-                  <span className="td-prod__info">
-                    <span>{pr.name}</span>
-                    <span>
-                      <b>Barcode</b>: {pr.barcode}
-                    </span>
-                    <span>
-                      <b>SKU</b>: {pr.sku}
-                    </span>
-                  </span>
-                </div>
-                <div className="td-groups">
-                  {LOC_GROUPS(p).map((g) => (
-                    <div key={g.id} className="td-group">
-                      <span className="td-loc">{g.code}</span>
-                      <div className="td-lines">
-                        {g.rows.map((r) => {
-                          const counted = res ? (res.counted[g.id]?.[r.date] ?? 0) : null;
-                          const delta = counted == null ? 0 : counted - r.stock;
-                          return (
-                            <div key={r.date} className="td-line">
-                              <span>{r.date}</span>
-                              <span>{r.stock}</span>
-                              <span className={delta !== 0 ? 'td-bad' : undefined}>{counted ?? '–'}</span>
-                              <span>Expiry Check</span>
-                              <span className="td-stamp">{stamp}</span>
-                              <span className="td-adjcell">
-                                {counted == null ? null : delta === 0 ? (
-                                  <b className="td-zero">0</b>
-                                ) : (
-                                  <>
-                                    <Adjust start={delta} />
-                                    <Reason />
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </article>
+                </span>
+                <span>{exp}</span>
+                <span className="tdv__cnt">
+                  {r ? (
+                    <>
+                      {dot(r.first === exp)}
+                      {r.first}
+                    </>
+                  ) : (
+                    '-'
+                  )}
+                </span>
+                <span className="tdv__cnt">
+                  {r && r.recount != null ? (
+                    <>
+                      {dot(r.recount === exp)}
+                      {r.recount}
+                    </>
+                  ) : (
+                    '-'
+                  )}
+                </span>
+                <span className="tdv__cnt">
+                  {adjusted && isDisc ? (
+                    <>
+                      {dot(true)}
+                      {exp}
+                    </>
+                  ) : (
+                    '-'
+                  )}
+                </span>
+                <span>{res ? stamp : '-'}</span>
+                <span className="tdv__i">{res ? I.info : null}</span>
+              </div>
             );
           })}
+        </div>
+      </div>
+    </div>
+  );
+}
+type ReactNodeLike = React.ReactNode;
+
+/** "Manual Adjust Batch": per location / expiry date, what was counted vs. the system, with an adjustment per line. */
+export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTask; res: TaskResult; onClose: () => void; onAdjust: () => void }) {
+  const prods = discrepantProducts(task, res);
+  const lines = (p: ProductId) =>
+    LOC_GROUPS(p).flatMap((g) => g.rows.map((r) => ({ key: g.id + r.date, loc: g.code, date: r.date, stock: r.stock, counted: res.counted[g.id]?.[r.date] ?? 0 })));
+  const [adj, setAdj] = useState<Record<string, number>>(() => Object.fromEntries(prods.flatMap((p) => lines(p).map((l) => [l.key, l.counted - l.stock]))));
+  const tot = taskTotals(task, res, false);
+  const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
+  const cls = (n: number) => (n < 0 ? 'am-neg' : n > 0 ? 'am-pos' : undefined);
+  return (
+    <div className="im-modal-wrap" onClick={onClose}>
+      <div className="am" role="dialog" aria-label="Manual Adjust Batch" onClick={(e) => e.stopPropagation()}>
+        <header className="am__head">
+          <h2>Manual Adjust Batch</h2>
+          <button type="button" className="am__close" aria-label="Close" onClick={onClose}>
+            {I.close}
+          </button>
+        </header>
+        <div className="am__body">
+          <div className="am__top">
+            <h3>Discrepancy Summary</h3>
+            <div className="tdv__kpis">
+              <div className="tdv-kpi">
+                <span>{I.sku}Total SKUs</span>
+                <b>{tot.skus}</b>
+              </div>
+              <div className="tdv-kpi">
+                <span>{I.items}Total Items</span>
+                <b>{tot.items}</b>
+              </div>
+              <div className="tdv-kpi">
+                <span>{I.disc}Discrepancies</span>
+                <b>{tot.discrepancies}</b>
+              </div>
+            </div>
+          </div>
+          <div className="am__tip">
+            {I.bulb}
+            <div>
+              <p>
+                When adjusting stock in <b>Locations</b> with <b>Multiple Expiration Dates</b>:
+              </p>
+              <ul>
+                <li>
+                  If you’re <b>decreasing stock</b>, it will be taken from the <b>longest expiration date</b>.
+                </li>
+                <li>
+                  If you’re <b>increasing stock</b>, it will be placed in the <b>closest expiration date</b>.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className="am__table">
+            <div className="am__row am__row--head">
+              <span>SKU</span>
+              <span>LOCATIONS</span>
+              <span>
+                EXPIRY DATES<em>(PER LOCATION)</em>
+              </span>
+              <span>
+                STOCK ON HAND<em>(PER EXPIRY DATE)</em>
+              </span>
+              <span>
+                UNITS COUNTED<em>(PER LOCATION)</em>
+              </span>
+              <span>
+                DISCREPANT UNITS FOUND<em>(PER LOCATION)</em>
+              </span>
+              <span className="am__center">ADJUST</span>
+            </div>
+            {prods.map((p) => {
+              const ls = lines(p);
+              const sum = (f: (l: (typeof ls)[number]) => number) => ls.reduce((n, l) => n + f(l), 0);
+              const totalAdj = ls.reduce((n, l) => n + adj[l.key], 0);
+              return (
+                <div key={p} className="am__block">
+                  <div className="am__lines">
+                    {ls.map((l, i) => {
+                      const d = l.counted - l.stock;
+                      return (
+                        <div key={l.key} className="am__row">
+                          <span className="am__sku">
+                            {i === 0 && (
+                              <>
+                                <img src={PRODUCTS[p].image} alt="" />
+                                <span>
+                                  <b>{PRODUCTS[p].name}</b>
+                                  <small>SKU: {PRODUCTS[p].sku}</small>
+                                </span>
+                              </>
+                            )}
+                          </span>
+                          <span>{l.loc}</span>
+                          <span>{ymd(l.date)}</span>
+                          <span>{l.stock}</span>
+                          <span>{l.counted}</span>
+                          <span className={cls(d)}>{d === 0 ? 0 : sign(d)}</span>
+                          <span className="am__center">
+                            <span className="am-step">
+                              <button type="button" aria-label="Decrease" onClick={() => setAdj({ ...adj, [l.key]: adj[l.key] - 1 })}>
+                                {I.minus}
+                              </button>
+                              <b>{adj[l.key]}</b>
+                              <button type="button" aria-label="Increase" onClick={() => setAdj({ ...adj, [l.key]: adj[l.key] + 1 })}>
+                                {I.plus}
+                              </button>
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="am__row am__row--total">
+                    <span />
+                    <span className="am__totalcell">TOTAL</span>
+                    <span>{sum((l) => l.stock)}</span>
+                    <span>{sum((l) => l.counted)}</span>
+                    <span className={cls(sum((l) => l.counted - l.stock))}>{sign(sum((l) => l.counted - l.stock))}</span>
+                    <span className="am__center am__sum">
+                      {sign(totalAdj)} {I.check}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="am__foot">
+          <button type="button" className="am__go" onClick={onAdjust}>
+            Adjust
+          </button>
         </div>
       </div>
     </div>

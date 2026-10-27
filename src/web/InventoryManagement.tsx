@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import carrot from '../assets/web/carrot.svg';
 import { CreateTask } from './CreateTask';
-import { TaskDetail, taskTotals } from './TaskDetail';
+import { AdjustModal, TaskDetail, taskTotals } from './TaskDetail';
 import type { TaskResult } from './TaskDetail';
 import type { CreateInitial, CreatedTask } from './CreateTask';
 
@@ -54,7 +54,7 @@ export type { TaskResult };
 
 /** Jump requested from the left navigator: which view of the website to show. */
 export interface WebCommand {
-  id: 'IM1' | 'IM2' | 'IM3' | 'IM4' | 'IM5' | 'IM6' | 'IM7' | 'IM8';
+  id: 'IM1' | 'IM2' | 'IM3' | 'IM4' | 'IM5' | 'IM6' | 'IM7' | 'IM8' | 'IM9' | 'IM10' | 'IM11';
   n: number;
 }
 
@@ -66,9 +66,11 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
   const [openTask, setOpenTask] = useState<string | null>(null);
   const [initial, setInitial] = useState<CreateInitial | undefined>(undefined);
   const [popupCode, setPopupCode] = useState('IM3');
+  const [reviewing, setReviewing] = useState<string | null>(null); // task whose "Manual Adjust Batch" is open
+  const [adjusted, setAdjusted] = useState<Record<string, boolean>>({});
 
   // View codes: every state of the website has one (IM1…IM9), shown in the title and used by the navigator
-  const code = creating ? popupCode : tab === 'regular' ? 'IM1' : tab === 'wall' ? 'IM2' : openTask ? (results[openTask] ? 'IM9' : 'IM8') : 'IM7';
+  const code = creating ? popupCode : reviewing ? 'IM10' : tab === 'regular' ? 'IM1' : tab === 'wall' ? 'IM2' : openTask ? (adjusted[openTask] ? 'IM11' : results[openTask] ? 'IM9' : 'IM8') : 'IM7';
   useEffect(() => {
     onCode(code);
   }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -77,10 +79,14 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
     if (!command) return;
     const c = command.id;
     setSent(null);
-    if (c === 'IM1' || c === 'IM2' || c === 'IM7' || c === 'IM8') {
+    if (c === 'IM1' || c === 'IM2' || c === 'IM7' || c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11') {
       setCreating(false);
+      setReviewing(null);
       setTab(c === 'IM1' ? 'regular' : c === 'IM2' ? 'wall' : 'expiry');
-      setOpenTask(c === 'IM8' ? (created[0]?.id ?? null) : null);
+      const first = created[0]?.id ?? null;
+      setOpenTask(c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11' ? first : null);
+      if (c === 'IM10' && first) setReviewing(first);
+      if (first) setAdjusted((a) => ({ ...a, [first]: c === 'IM11' }));
     } else {
       setInitial(c === 'IM3' ? undefined : c === 'IM4' ? { step: 1, pick: true } : c === 'IM5' ? { step: 2 } : { step: 2, batches: 3, expand: true });
       setCreating(true);
@@ -151,78 +157,78 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
           {tab === 'expiry' ? (
             <section className="im__table">
               <div className="im__row im__row--exp im__row--head">
-                <span>AUDIT ID</span>
-                <span>SAMPLE TYPE</span>
+                <span>CYCLE COUNT ID</span>
                 <span>STATUS</span>
-                <span>SKUS</span>
-                <span>LAST UPDATE</span>
+                <span>PRODUCTS</span>
+                <span>LAST UPDATED</span>
+                <span>COMPLETED AT</span>
+                <span>PICKER</span>
                 <span />
               </div>
               {created.map((t) => {
                 const isOpen = openTask === t.id;
                 const res = results[t.id];
+                const adj = !!adjusted[t.id];
                 const [d, tm] = (res ? res.at : t.date).split(' – ');
-                const tot = taskTotals(t, res);
+                const tot = taskTotals(t, res, adj);
                 const label = !res ? 'Unassigned' : tot.discrepancies ? 'Discrepancy' : 'Completed';
+                const status = (
+                  <span className={!res ? 'im__status' : tot.discrepancies ? 'im__status im__status--bad' : 'im__status im__status--done'}>
+                    <b>{label}</b>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                );
+                const stamp = (
+                  <span>
+                    {d.replace(/\//g, '.')}
+                    <br />
+                    {tm}
+                  </span>
+                );
                 return (
                   <div key={t.id} className={isOpen ? 'im__task im__task--open' : 'im__task'}>
-                    <div className="im__row im__row--exp">
-                      <span>{t.id}</span>
-                      <span>Expiry Checks</span>
-                      <span className={!res ? 'im__status' : tot.discrepancies ? 'im__status im__status--bad' : 'im__status im__status--done'}>
-                        <b>{label}</b>
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                      <span>{t.skus} SKU{t.skus === 1 ? '' : 's'}</span>
-                      <span>
-                        {d.replace(/\//g, '.')}
-                        <br />
-                        {tm}
-                      </span>
-                      <button type="button" className={isOpen ? 'im__expand im__expand--open' : 'im__expand'} aria-label={`Expand task ${t.id}`} aria-expanded={isOpen} onClick={() => setOpenTask(isOpen ? null : t.id)}>
-                        {Icon.chevron}
-                      </button>
-                    </div>
-                    {isOpen && <TaskDetail task={t} res={res} date={d.replace(/\//g, '.')} time={tm} />}
+                    {isOpen ? (
+                      <TaskDetail task={t} res={res} adjusted={adj} status={status} date={d.replace(/\//g, '.')} time={tm} onClose={() => setOpenTask(null)} onReview={() => setReviewing(t.id)} />
+                    ) : (
+                      <div className="im__row im__row--exp">
+                        <span>{t.id}</span>
+                        {status}
+                        <span>
+                          {t.skus} SKU{t.skus === 1 ? '' : 's'}
+                        </span>
+                        {stamp}
+                        {res ? stamp : <span>-</span>}
+                        <span>{res ? 'Pelican user' : '-'}</span>
+                        <button type="button" className="im__expand" aria-label={`Expand task ${t.id}`} aria-expanded={false} onClick={() => setOpenTask(t.id)}>
+                          {Icon.chevron}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
-              <div className="im__row im__row--exp">
-                <span>59112207</span>
-                <span>Deshelving</span>
-                <span className="im__status">
-                  <b>Unassigned</b>
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span>120 SKUs</span>
-                <span>
-                  20.03.2023
-                  <br />
-                  14:05:25 AM
-                </span>
-                <span />
-              </div>
-              <div className="im__row im__row--exp">
-                <span>59112207</span>
-                <span>Expiry Checks</span>
-                <span className="im__status">
-                  <b>Unassigned</b>
-                  <i />
-                  <i />
-                  <i />
-                </span>
-                <span>120 SKUs</span>
-                <span>
-                  20.03.2023
-                  <br />
-                  14:05:25 AM
-                </span>
-                <span />
-              </div>
+              {[0, 1].map((i) => (
+                <div key={i} className="im__row im__row--exp">
+                  <span>59112207</span>
+                  <span className="im__status">
+                    <b>Unassigned</b>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span>120 SKUs</span>
+                  <span>
+                    20.03.2023
+                    <br />
+                    14:05:25
+                  </span>
+                  <span>-</span>
+                  <span>-</span>
+                  <span />
+                </div>
+              ))}
             </section>
           ) : (
           <section className="im__table">
@@ -268,6 +274,18 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
         </main>
       </div>
 
+      {reviewing && results[reviewing] && (
+        <AdjustModal
+          key={reviewing}
+          task={created.find((t) => t.id === reviewing)!}
+          res={results[reviewing]}
+          onClose={() => setReviewing(null)}
+          onAdjust={() => {
+            setAdjusted((a) => ({ ...a, [reviewing]: true }));
+            setReviewing(null);
+          }}
+        />
+      )}
       {creating && (
         <CreateTask
           key={command?.n ?? 0}

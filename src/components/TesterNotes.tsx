@@ -19,8 +19,8 @@ const EDGE_CASES: { title: string; steps: string[] }[] = [
     steps: ['On the list, slide a card to the left and tap the red area (or swipe all the way).', 'On Chao Tuoi, marking location 2 Out of Stock also triggers a Recount, because the total no longer matches 24.'],
   },
   {
-    title: 'Second location appears',
-    steps: ['Chao Tuoi has 2 locations. Location 2 is created only after location 1 is confirmed.', 'Its expected total is split: location 1 + location 2 = 24 units.'],
+    title: 'Same product in several locations',
+    steps: ['Chao Tuoi is listed twice from the start: a22-154-112 and a22-155-114 (Product on Multiple Locations).', 'Each location is counted on its own; the expected total is split: location 1 + location 2 = 24 units.'],
   },
   {
     title: 'Errors you cannot trigger by tapping',

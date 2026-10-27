@@ -30,6 +30,9 @@ const WEB_VIEWS: { id: WebCommand['id']; group: string; label: string }[] = [
   { id: 'IM6', group: 'Create Count Task', label: 'Batches · 3 batches, one expanded' },
   { id: 'IM7', group: 'Expiry Checks tasks', label: 'Expiry Checks list' },
   { id: 'IM8', group: 'Expiry Checks tasks', label: 'Task expanded · waiting for Pelican' },
+  { id: 'IM9', group: 'Expiry Checks tasks', label: 'Task completed in Pelican · discrepancies' },
+  { id: 'IM10', group: 'Expiry Checks tasks', label: 'Manual Adjust Batch (pop up)' },
+  { id: 'IM11', group: 'Expiry Checks tasks', label: 'Task after the manual adjustment' },
 ];
 /** Edge cases: each one starts with a titled row, followed by the states it goes through (preset ids from state.ts). */
 const USE_CASES: { title: string; hint: string; steps: string[] }[] = [
@@ -60,6 +63,23 @@ export default function App() {
       const p2 = (n: number) => String(n).padStart(2, '0');
       setCreated([{ ...SAMPLE_TASK, date: `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} – ${p2(d.getHours())}:${p2(d.getMinutes())}` }]);
     }
+    if (['IM9', 'IM10', 'IM11'].includes(id)) {
+      // these views need Pelican's counts: if the task has none yet, fake a finished run with one discrepancy
+      const tk = created[0] ?? { ...SAMPLE_TASK, date: '' };
+      const d = new Date();
+      const p2 = (n: number) => String(n).padStart(2, '0');
+      if (!created[0]) setCreated([{ ...tk, date: `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} – ${p2(d.getHours())}:${p2(d.getMinutes())}` }]);
+      if (!results[tk.id]) {
+        const counted: TaskResult['counted'] = {};
+        for (const l of LOCS.filter((x) => tk.products.includes(x.product))) counted[l.id] = Object.fromEntries(l.dates.map((dt, i) => [dt.replace(/\./g, '/'), l.pass[i]]));
+        const first = LOCS.find((x) => tk.products.includes(x.product))!;
+        const k = first.dates[0].replace(/\./g, '/');
+        counted[first.id]![k] = Math.max(0, counted[first.id]![k] - 1);
+        const products: TaskResult['products'] = {};
+        for (const p of tk.products) products[p] = { first: LOCS.filter((l) => l.product === p).reduce((n, l) => n + Object.values(counted[l.id] ?? {}).reduce((x, y) => x + y, 0), 0), recount: null };
+        setResults((r) => ({ ...r, [tk.id]: { at: `${p2(d.getDate())}.${p2(d.getMonth() + 1)}.${d.getFullYear()} – ${p2(d.getHours())}:${p2(d.getMinutes())}`, counted, products } }));
+      }
+    }
     setWebCmd((c) => ({ id, n: (c?.n ?? 0) + 1 }));
     show(webRef.current);
   };
@@ -67,16 +87,22 @@ export default function App() {
   useEffect(() => {
     if (s.screen !== 'summary' || !created.some((c) => c.id === s.taskId)) return;
     const counted: TaskResult['counted'] = {};
+    const products: TaskResult['products'] = {};
     for (const l of LOCS.filter((x) => s.scope.includes(x.product))) {
       const byDate: Record<string, number> = {};
       for (const d of l.dates) byDate[d.replace(/\./g, '/')] = 0;
       if (!s.locs[l.id].oos) for (const b of s.locs[l.id].batches) byDate[b.date.replace(/\./g, '/')] = (byDate[b.date.replace(/\./g, '/')] ?? 0) + b.qty;
       counted[l.id] = byDate;
     }
+    for (const p of s.scope) {
+      const final = LOCS.filter((l) => l.product === p).reduce((n, l) => n + Object.values(counted[l.id] ?? {}).reduce((x, y) => x + y, 0), 0);
+      const first = s.firstCount[p];
+      products[p] = first != null ? { first, recount: final } : { first: final, recount: null };
+    }
     const now = new Date();
     const p2 = (n: number) => String(n).padStart(2, '0');
     const at = `${p2(now.getDate())}.${p2(now.getMonth() + 1)}.${now.getFullYear()} – ${p2(now.getHours())}:${p2(now.getMinutes())}`;
-    setResults((r) => ({ ...r, [s.taskId]: { at, counted } }));
+    setResults((r) => ({ ...r, [s.taskId]: { at, counted, products } }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [s.screen, s.taskId]);
 

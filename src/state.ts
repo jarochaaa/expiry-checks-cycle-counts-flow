@@ -53,6 +53,8 @@ export interface State {
   recount: Record<ProductId, boolean>;
   /** location the recount starts with (shown first in the list) */
   recountFirst: Partial<Record<ProductId, LocId>>;
+  /** units counted the first time a product was completed, kept when it goes back to recount (sent to Inventory Management) */
+  firstCount: Partial<Record<ProductId, number>>;
   /** discrepancy banner on the product list */
   banner: boolean;
   /** how many products ever triggered a discrepancy (red chip on the summary) */
@@ -87,6 +89,7 @@ export const initialState: State = {
   locs: Object.fromEntries(LOC_ORDER.map((id) => [id, emptyLoc(id)])) as Record<LocId, LocState>,
   recount: { sita: false, burine: false, chao: false },
   recountFirst: {},
+  firstCount: {},
   banner: false,
   discrepancies: 0,
   pdp: null,
@@ -196,6 +199,7 @@ function afterCount(s: State, loc: LocId, viaPdp: boolean): State {
       locs,
       recount: { ...s.recount, [p]: true },
       recountFirst: { ...s.recountFirst, [p]: loc },
+      firstCount: { ...s.firstCount, [p]: s.firstCount[p] ?? productTotal(s, p) },
       discrepancies: s.discrepancies + 1,
       banner: !viaPdp,
       tab: 'todo',
@@ -400,7 +404,7 @@ const RAW: Preset[] = [
   P('skus', 'Nothing counted (3 products)', START),
   P('sita-done-todo', 'Sita counted · Burine + Chao Tuoi left', S1),
   P('burine-done-todo', 'Burine counted · Chao Tuoi left', S2),
-  P('chao2-created', 'Chao Tuoi 1 counted · location 2 created', S3),
+  P('chao2-created', 'Chao Tuoi 1 counted · location 2 left', S3),
   P('chao2-swipe', 'Chao Tuoi 2 swiped (Out of Stock)', [...S3, { type: 'swipe', loc: 'chao2' }]),
   P('chao-banner', 'Stock Discrepancy · banner on list', RC1),
   P('chao-swipe2', 'Recount · Chao Tuoi 2 swiped again', [...RC1, { type: 'swipe', loc: 'chao2' }]),
@@ -423,7 +427,7 @@ const RAW: Preset[] = [
   P('pdp-discrepancy', 'Stock Discrepancy · on the product page', DM),
   P('pdp-single', 'Burine · 1 expiry date', [...S1, ...scan('burine'), hint]),
   P('pdp-three', 'Chao Tuoi 1 · 3 expiry dates', [...S2, ...scan('chao1'), hint]),
-  P('pdp-three-loc2', 'Chao Tuoi 2 · 3 expiry dates (new location)', [...S3, ...scan('chao2'), hint]),
+  P('pdp-three-loc2', 'Chao Tuoi 2 · 3 expiry dates', [...S3, ...scan('chao2'), hint]),
 
   P('qty-empty', 'Quantity sheet · empty', [...SITA_OPEN, { type: 'openQty', date: '12.12.2027' }]),
   P('qty-entered', 'Quantity sheet · value typed', [...SITA_OPEN, { type: 'openQty', date: '12.12.2027' }, { type: 'qtyType', value: '6' }]),
