@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { DetailModal } from './components/DetailModal';
 import { SendSheet, StartSheet } from './components/Sheets';
 import { TesterNotes } from './components/TesterNotes';
@@ -10,6 +10,7 @@ import { Summary } from './screens/Summary';
 import { Audits } from './screens/Audits';
 import { Language } from './screens/Language';
 import { InventoryManagement } from './web/InventoryManagement';
+import type { CreatedTask } from './web/CreateTask';
 import './web/web.css';
 import { I18nProvider, LANGS, makeI18n } from './i18n';
 import { PdpScreen } from './screens/Pdp';
@@ -21,6 +22,8 @@ const SEND_MS = 1400;
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
+  // Tasks created in Inventory Management arrive in Pelican's Audits list
+  const [created, setCreated] = useState<CreatedTask[]>([]);
 
   // Alerts auto-dismiss; a new alert (new id) restarts the timer.
   useEffect(() => {
@@ -55,14 +58,14 @@ export default function App() {
 
       <div className="board">
         <section className="board__web" aria-label="Inventory Management">
-          <InventoryManagement />
+          <InventoryManagement onCreateTasks={(t) => setCreated((c) => [...t.map((x, i) => ({ ...x, id: String(67893 + c.length + i) })), ...c])} />
         </section>
         <section className="board__app" aria-label="App">
       <div className="app">
         <TaskBanner task={taskFor(s)} code={codeFor(s)} />
 
         <div className="app__view" dir={i18n.rtl ? 'rtl' : 'ltr'} lang={s.lang}>
-          {s.screen === 'audits' && <Audits tab={s.auditsTab} dispatch={dispatch} />}
+          {s.screen === 'audits' && <Audits tab={s.auditsTab} created={created} dispatch={dispatch} />}
           {s.screen === 'language' && <Language dispatch={dispatch} />}
           {s.screen === 'skus' && <SkuList s={s} dispatch={dispatch} />}
           {s.screen === 'summary' && <Summary taskId={s.taskId} skus={SKUS} alerts={s.discrepancies} dispatch={dispatch} />}

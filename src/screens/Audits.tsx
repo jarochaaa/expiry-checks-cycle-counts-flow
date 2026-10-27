@@ -29,10 +29,11 @@ function TicketCard({ t, onOpen, showTag, showProducts }: { t: Ticket; onOpen?: 
   );
 }
 
-export function Audits({ tab, dispatch }: { tab: AuditsTab; dispatch: Dispatch<Action> }) {
+export function Audits({ tab, created, dispatch }: { tab: AuditsTab; created: { id: string; date: string }[]; dispatch: Dispatch<Action> }) {
   const { t } = useI18n();
   const count = tab === 'count';
-  const data = count ? COUNT_TICKETS : REMOVAL_TICKETS;
+  const base = count ? COUNT_TICKETS : REMOVAL_TICKETS;
+  const data = count ? { ...base, todo: [...created.map((c): Ticket => ({ id: c.id, date: c.date, tag: 'Expiry Level' })), ...base.todo] } : base;
   return (
     <div className="screen screen-enter pl">
       <div className="audits">

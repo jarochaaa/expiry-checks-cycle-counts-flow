@@ -34,7 +34,7 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     if (s.recount[loc.product]) lines.unshift('RECOUNT: all locations of this product start again from 0.');
   } else if (s.screen === 'audits') {
     title = 'Audits';
-    lines.push('Only task 67891 (Expiry Level) opens. The other tickets do nothing on purpose.');
+    lines.push('Only Expiry Level tasks open. They appear here once you create them in Inventory Management (Create Count Task → Expiry Based → Expiry level checks → Create).');
     lines.push('Removal Tasks is a view only.');
   } else if (s.screen === 'skus') {
     title = 'Product list';

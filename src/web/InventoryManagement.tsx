@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import carrot from '../assets/web/carrot.svg';
+import { CreateTask } from './CreateTask';
+import type { CreatedTask } from './CreateTask';
 
 const KPIS = [
   { label: 'Count Task Completed', value: '450', icon: 'bottle' },
@@ -38,8 +40,9 @@ const Icon = {
   archive: <Svg><rect x="3" y="4" width="18" height="5" /><path d="M5 9v11h14V9M10 13h4" /></Svg>,
 };
 
-export function InventoryManagement() {
+export function InventoryManagement({ onCreateTasks }: { onCreateTasks: (tasks: CreatedTask[]) => void }) {
   const [creating, setCreating] = useState(false);
+  const [sent, setSent] = useState<number | null>(null);
   const [tab, setTab] = useState<'regular' | 'wall'>('wall');
   const [open, setOpen] = useState<number | null>(null);
   return (
@@ -144,14 +147,19 @@ export function InventoryManagement() {
       </div>
 
       {creating && (
-        <div className="im-modal-wrap" onClick={() => setCreating(false)}>
-          <div className="im-modal" role="dialog" aria-label="Create Count Task" onClick={(e) => e.stopPropagation()}>
-            <h2>Create Count Task</h2>
-            <p>The creation flow is coming next.</p>
-            <button type="button" onClick={() => setCreating(false)}>
-              Close
-            </button>
-          </div>
+        <CreateTask
+          onClose={() => setCreating(false)}
+          onCreate={(tasks) => {
+            setCreating(false);
+            setSent(tasks.length);
+            onCreateTasks(tasks);
+            setTimeout(() => setSent(null), 4000);
+          }}
+        />
+      )}
+      {sent != null && (
+        <div className="im-toast" role="status">
+          {sent} Expiry Level task{sent > 1 ? 's' : ''} sent to Pelican
         </div>
       )}
     </div>
