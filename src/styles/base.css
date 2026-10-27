@@ -125,6 +125,7 @@ img {
 .board__app {
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 .board__web,
 .side {
@@ -148,6 +149,7 @@ img {
     scroll-padding-left: 24px;
   }
   .board__app {
+    width: auto;
     flex: none;
     align-items: flex-start;
     gap: 24px;
