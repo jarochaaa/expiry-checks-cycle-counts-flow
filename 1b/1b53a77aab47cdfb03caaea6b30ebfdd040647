@@ -1,0 +1,30 @@
+src/web/web.css
+  s_1bf2109d03fa68::t_1f50d6cfaf7264 322-491,493,495-497,499-501,503-508,510,512-584,586-632,634-684,686-921,924-947
+src/components/TesterNotes.tsx
+  s_1bf2109d03fa68::t_1f50d6cfaf7264 37
+src/screens/Audits.tsx
+  s_1bf2109d03fa68::t_1f50d6cfaf7264 32,35-36
+src/App.tsx
+  s_1bf2109d03fa68::t_2097af1cdda4d3 61
+  s_1bf2109d03fa68::t_1f50d6cfaf7264 1,13,25-26,68
+src/web/CreateTask.tsx
+  s_1bf2109d03fa68::t_021f8b28e41a01 1-378
+src/web/InventoryManagement.tsx
+  s_1bf2109d03fa68::t_85068324a02bbc 3-4,43,45,150-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "1b1b53a77aab47cdfb03caaea6b30ebfdd040647",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
