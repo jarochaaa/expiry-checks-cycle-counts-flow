@@ -48,12 +48,14 @@ const rowsFor = (p: ProductId): Row[] => {
   const loc = LOCS.find((l) => l.product === p)!;
   return loc.dates.map((d, i) => ({ product: p, date: d.replace(/\./g, '/'), stock: STOCK[p][i], loc: loc.code }));
 };
+export const STOCK_ROWS = rowsFor;
 const sum = (r: Row[]) => r.reduce((n, x) => n + x.stock, 0);
 
 export interface CreatedTask {
   id: string;
   date: string;
   skus: number;
+  products: ProductId[];
 }
 
 export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreate: (tasks: CreatedTask[]) => void }) {
@@ -111,7 +113,7 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
     const tasks = batches
       .map((b, i) => ({ b, i }))
       .filter(({ i }) => selected[i])
-      .map(({ b }, k) => ({ id: String(67891 + k), date, skus: b.length }));
+      .map(({ b }, k) => ({ id: String(67891 + k), date, skus: b.length, products: b }));
     onCreate(tasks);
   };
 

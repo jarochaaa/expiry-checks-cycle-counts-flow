@@ -187,13 +187,18 @@
 }
 .im__tabs {
   display: flex;
-  width: 459px;
+  align-items: stretch;
+  width: 620px;
   border: 2px solid #dfdfdf;
   border-radius: 100px;
 }
 .im__tabs button {
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 24px;
+  white-space: nowrap;
   border: 0;
   border-radius: 200px;
   background: transparent;
@@ -314,10 +319,15 @@
   inset: 0;
   z-index: 10;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-end;
+  padding: 24px;
   background: rgba(12, 12, 12, 0.5);
   animation: fade-in 160ms ease-out;
+}
+@keyframes slide-in-right {
+  from { transform: translateX(calc(100% + 24px)); }
+  to { transform: translateX(0); }
 }
 
 .im-toast {
@@ -337,8 +347,8 @@
 /* ---------- Create Count Task window (template 9171:33588) ---------- */
 .ct {
   width: 700px;
-  height: 836px;
-  max-height: calc(100% - 48px);
+  height: 100%;
+  animation: slide-in-right 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
   display: flex;
   flex-direction: column;
   border-radius: 20px;
@@ -929,9 +939,9 @@ input:checked + .ct__box svg {
 /* ---------- Table tabs (Regular / Wall to Wall) ---------- */
 .im__tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   align-items: stretch;
-  width: 459px;
+  width: 640px;
   height: 40px;
   padding: 0;
   border: 2px solid #dfdfdf;
@@ -943,5 +953,37 @@ input:checked + .ct__box svg {
   align-items: center;
   justify-content: center;
   padding: 0;
+  white-space: nowrap;
   text-align: center;
 }
+
+/* ---------- Expiry Tasks table ---------- */
+.im__row--exp { grid-template-columns: 140px 220px minmax(280px, 1fr) 100px 140px 56px; }
+.im__row > span:not(.im__status) { line-height: 1.4; }
+.im__task { border-bottom: 1px solid #dfdfdf; }
+.im__task > .im__row { border-bottom: 0; }
+.im__task--open { background: #fafafa; }
+.im__detail { padding: 8px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
+.im__detail-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.im__detail-top h4 { margin: 0 0 0 auto; font: 700 14px/1 'Open Sans', sans-serif; display: flex; align-items: center; }
+.im__mini { display: flex; flex-direction: column; justify-content: center; gap: 4px; min-width: 140px; padding: 10px 14px; border: 1px solid #dfdfdf; border-radius: 8px; background: #fff; }
+.im__mini span { font: 600 11px/1 'Open Sans', sans-serif; color: #6f6f6f; }
+.im__mini b { font: 700 20px/1 'Open Sans', sans-serif; }
+.im__actions { display: flex; align-items: center; gap: 12px; font: 600 12px/1 'Open Sans', sans-serif; }
+.im__act { height: 36px; padding: 0 18px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid #0c0c0c; border-radius: 8px; background: #fff; font: 700 12px/1 'Open Sans', sans-serif; cursor: pointer; }
+.im__act--go { background: #1db954; border-color: #1db954; color: #fff; }
+.im__act:disabled { opacity: .45; cursor: default; }
+.im__filter--inner { margin: 0; }
+.im__sku-table { border: 1px solid #dfdfdf; border-radius: 8px; overflow: hidden; background: #fff; }
+.im__sku { display: grid; grid-template-columns: 76px 1.6fr 1fr 1fr 0.8fr 0.8fr 1fr 1fr 0.8fr; align-items: center; padding: 0 12px; font-size: 11px; }
+.im__sku > span { padding: 10px 6px; display: flex; align-items: center; }
+.im__sku--head { background: #0c0c0c; color: #fff; font-weight: 700; min-height: 44px; }
+.im__sku--card { border-top: 1px solid #dfdfdf; }
+.im__sku-img { justify-content: center; }
+.im__sku-img img { width: 52px; height: 52px; object-fit: contain; }
+.im__sku-name { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 2px; font-weight: 700; }
+.im__sku-name small { font-weight: 400; color: #6f6f6f; }
+.im__sku-loc i { font-style: normal; padding: 4px 10px; border-radius: 100px; background: #f0f0f0; font-weight: 600; }
+.im__sku-lines { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 10px; }
+.im__sku-lines > span { display: block; padding: 0; min-height: 28px; line-height: 28px; }
+.im__sku-lines--date > span { line-height: 1.3; }

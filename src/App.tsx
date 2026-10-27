@@ -58,7 +58,7 @@ export default function App() {
 
       <div className="board">
         <section className="board__web" aria-label="Inventory Management">
-          <InventoryManagement onCreateTasks={(t) => setCreated((c) => [...t.map((x, i) => ({ ...x, id: String(67893 + c.length + i) })), ...c])} />
+          <InventoryManagement created={created} onCreateTasks={(t) => setCreated((c) => [...t.map((x, i) => ({ ...x, id: String(67893 + c.length + i) })), ...c])} />
         </section>
         <section className="board__app" aria-label="App">
       <div className="app">
