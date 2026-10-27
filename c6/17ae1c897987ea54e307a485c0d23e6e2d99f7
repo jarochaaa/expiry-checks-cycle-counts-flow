@@ -1,0 +1,24 @@
+src/web/web.css
+  s_1bf2109d03fa68::t_28cdf253d44b6b 991
+  s_1bf2109d03fa68::t_0608240547cdc2 990,992-993
+src/App.tsx
+  s_1bf2109d03fa68::t_c35466cec30fb9 7,13,28-45,80
+src/web/InventoryManagement.tsx
+  s_1bf2109d03fa68::t_409deb7198ace3 3,53-59,139-140,142-144,150-151,175,179,181,188,243-245,262
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c617ae1c897987ea54e307a485c0d23e6e2d99f7",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
