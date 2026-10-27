@@ -64,10 +64,12 @@ export function InventoryManagement() {
 
       <div className="im__body">
         <nav className="im__nav" aria-hidden>
-          <span>{Icon.home}</span>
-          <span className="im__nav--on">{Icon.refresh}</span>
-          <span>{Icon.globe}</span>
-          <span>{Icon.pin}</span>
+          <div className="im__nav-pill">
+            <span>{Icon.home}</span>
+            <span className="im__nav--on">{Icon.refresh}</span>
+            <span>{Icon.globe}</span>
+            <span>{Icon.pin}</span>
+          </div>
         </nav>
 
         <main className="im__main">

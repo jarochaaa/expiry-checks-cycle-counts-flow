@@ -41,7 +41,7 @@ export default function App() {
     <I18nProvider value={i18n}>
     <div className="stage">
       <nav className="proto-nav" aria-label="Prototype flow">
-        <div className="proto-nav__title">Cycle Count · flow</div>
+        <div className="proto-nav__title">Cycle Count - Expiry Checks flow</div>
         {PRESETS.map((p, i) => (
           <div key={p.id} style={{ display: 'contents' }}>
             {(i === 0 || PRESETS[i - 1].group !== p.group) && <div className="proto-nav__sub">{p.group}</div>}
@@ -54,6 +54,9 @@ export default function App() {
       </nav>
 
       <div className="board">
+        <section className="board__web" aria-label="Inventory Management">
+          <InventoryManagement />
+        </section>
         <section className="board__app" aria-label="App">
       <div className="app">
         <TaskBanner task={taskFor(s)} code={codeFor(s)} />
@@ -98,9 +101,6 @@ export default function App() {
             </div>
 
           </div>
-        </section>
-        <section className="board__web" aria-label="Inventory Management">
-          <InventoryManagement />
         </section>
       </div>
     </div>
