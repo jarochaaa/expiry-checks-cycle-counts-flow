@@ -4,12 +4,13 @@ import { SendSheet, StartSheet } from './components/Sheets';
 import { TesterNotes } from './components/TesterNotes';
 import { TaskBanner } from './components/TaskBanner';
 import { Toast } from './components/ui';
-import { LOC_BY_ID, PRODUCTS } from './data';
+import { LOCS, LOC_BY_ID, PRODUCTS } from './data';
 import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { Audits } from './screens/Audits';
 import { Language } from './screens/Language';
 import { InventoryManagement } from './web/InventoryManagement';
+import type { TaskResult } from './web/InventoryManagement';
 import type { CreatedTask } from './web/CreateTask';
 import './web/web.css';
 import { I18nProvider, LANGS, makeI18n } from './i18n';
@@ -24,6 +25,24 @@ export default function App() {
   const [s, dispatch] = useReducer(reducer, initialState);
   // Tasks created in Inventory Management arrive in Pelican's Audits list
   const [created, setCreated] = useState<CreatedTask[]>([]);
+  // Counts finished in Pelican flow back to the same task in Inventory Management
+  const [results, setResults] = useState<Record<string, TaskResult>>({});
+
+  useEffect(() => {
+    if (s.screen !== 'summary' || !created.some((c) => c.id === s.taskId)) return;
+    const counted: TaskResult['counted'] = {};
+    for (const l of LOCS) {
+      const ls = s.locs[l.id];
+      const byDate = (counted[l.product] ??= {});
+      for (const d of l.dates) byDate[d.replace(/\./g, '/')] ??= 0;
+      if (!ls.oos) for (const b of ls.batches) byDate[b.date.replace(/\./g, '/')] = (byDate[b.date.replace(/\./g, '/')] ?? 0) + b.qty;
+    }
+    const now = new Date();
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    const at = `${p2(now.getDate())}.${p2(now.getMonth() + 1)}.${now.getFullYear()} – ${p2(now.getHours())}:${p2(now.getMinutes())}`;
+    setResults((r) => ({ ...r, [s.taskId]: { at, counted } }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s.screen, s.taskId]);
 
   // Alerts auto-dismiss; a new alert (new id) restarts the timer.
   useEffect(() => {
@@ -58,7 +77,7 @@ export default function App() {
 
       <div className="board">
         <section className="board__web" aria-label="Inventory Management">
-          <InventoryManagement created={created} onCreateTasks={(t) => setCreated((c) => [...t.map((x, i) => ({ ...x, id: String(67893 + c.length + i) })), ...c])} />
+          <InventoryManagement created={created} results={results} onCreateTasks={(t) => setCreated((c) => [...t.map((x, i) => ({ ...x, id: String(67893 + c.length + i) })), ...c])} />
         </section>
         <section className="board__app" aria-label="App">
       <div className="app">

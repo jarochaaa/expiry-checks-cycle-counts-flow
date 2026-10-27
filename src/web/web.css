@@ -987,3 +987,7 @@ input:checked + .ct__box svg {
 .im__sku-lines { flex-direction: column; align-items: flex-start !important; justify-content: center; gap: 10px; }
 .im__sku-lines > span { display: block; padding: 0; min-height: 28px; line-height: 28px; }
 .im__sku-lines--date > span { line-height: 1.3; }
+
+.im__status--done i, .im__status--done i:nth-of-type(n) { background: #1db954; }
+.im__status--done b { color: #0b7a35; }
+.im__bad { color: #d6203f; font-weight: 700; }

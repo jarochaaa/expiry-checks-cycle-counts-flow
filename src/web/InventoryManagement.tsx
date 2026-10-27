@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PRODUCTS } from '../data';
+import type { ProductId } from '../data';
 import carrot from '../assets/web/carrot.svg';
 import { CreateTask, STOCK_ROWS } from './CreateTask';
 import type { CreatedTask } from './CreateTask';
@@ -49,7 +50,13 @@ const Icon = {
   archive: <Svg><rect x="3" y="4" width="18" height="5" /><path d="M5 9v11h14V9M10 13h4" /></Svg>,
 };
 
-export function InventoryManagement({ created, onCreateTasks }: { created: CreatedTask[]; onCreateTasks: (tasks: CreatedTask[]) => void }) {
+/** Counts sent back from Pelican: product → expiry date (DD/MM/YYYY) → units counted */
+export interface TaskResult {
+  at: string;
+  counted: Partial<Record<ProductId, Record<string, number>>>;
+}
+
+export function InventoryManagement({ created, results, onCreateTasks }: { created: CreatedTask[]; results: Record<string, TaskResult>; onCreateTasks: (tasks: CreatedTask[]) => void }) {
   const [creating, setCreating] = useState(false);
   const [sent, setSent] = useState<number | null>(null);
   const [tab, setTab] = useState<'regular' | 'wall' | 'expiry'>('regular');
@@ -129,15 +136,19 @@ export function InventoryManagement({ created, onCreateTasks }: { created: Creat
               </div>
               {created.map((t) => {
                 const isOpen = openTask === t.id;
-                const [d, tm] = t.date.split(' – ');
+                const res = results[t.id];
+                const [d, tm] = (res ? res.at : t.date).split(' – ');
                 const rows = t.products.flatMap(STOCK_ROWS);
+                const cnt = (r: { product: ProductId; date: string }) => res?.counted[r.product]?.[r.date] ?? 0;
+                const diff = rows.filter((r) => res && cnt(r) !== r.stock).length;
+                const countedTotal = rows.reduce((n, r) => n + cnt(r), 0);
                 return (
                   <div key={t.id} className={isOpen ? 'im__task im__task--open' : 'im__task'}>
                     <div className="im__row im__row--exp">
                       <span>{t.id}</span>
                       <span>Expiry Date Checks</span>
-                      <span className="im__status">
-                        <b>Unassigned</b>
+                      <span className={res ? 'im__status im__status--done' : 'im__status'}>
+                        <b>{res ? 'Completed' : 'Unassigned'}</b>
                         <i />
                         <i />
                         <i />
@@ -161,20 +172,20 @@ export function InventoryManagement({ created, onCreateTasks }: { created: Creat
                           </div>
                           <div className="im__mini">
                             <span>Total Units</span>
-                            <b>{rows.reduce((n, r) => n + r.stock, 0)}</b>
+                            <b>{res ? countedTotal : rows.reduce((n, r) => n + r.stock, 0)}</b>
                           </div>
                           <div className="im__mini">
                             <span>Discrepancies</span>
-                            <b>0</b>
+                            <b>{diff}</b>
                           </div>
-                          <h4>Picker: Unassigned</h4>
+                          <h4>Picker: {res ? 'Pelican user' : 'Unassigned'}</h4>
                         </div>
                         <div className="im__actions">
                           <b>Actions:</b>
                           <button type="button" className="im__act">
                             Download
                           </button>
-                          <button type="button" className="im__act im__act--go" disabled>
+                          <button type="button" className="im__act im__act--go" disabled={!res}>
                             Adjust and complete
                           </button>
                         </div>
@@ -229,7 +240,9 @@ export function InventoryManagement({ created, onCreateTasks }: { created: Creat
                                 </span>
                                 <span className="im__sku-lines">
                                   {rs.map((r) => (
-                                    <span key={r.date}>–</span>
+                                    <span key={r.date} className={res && cnt(r) !== r.stock ? 'im__bad' : undefined}>
+                                      {res ? cnt(r) : '–'}
+                                    </span>
                                   ))}
                                 </span>
                                 <span className="im__sku-lines">
@@ -246,7 +259,7 @@ export function InventoryManagement({ created, onCreateTasks }: { created: Creat
                                     </span>
                                   ))}
                                 </span>
-                                <span className="im__sku-adj">–</span>
+                                <span className="im__sku-adj">{res ? rs.reduce((n, r) => n + (cnt(r) - r.stock), 0) : '–'}</span>
                               </div>
                             );
                           })}
