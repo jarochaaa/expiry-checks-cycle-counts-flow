@@ -591,10 +591,23 @@
   font: 700 10px/1 'Open Sans', sans-serif;
   cursor: pointer;
 }
+/* The black Next button floats at the bottom of the step: always reachable, no scrolling needed */
 .ct__next {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  height: 0;
   display: flex;
   justify-content: center;
-  padding: 4px 0;
+  overflow: visible;
+  z-index: 3;
+}
+.ct__next .ct__fab {
+  position: absolute;
+  bottom: -64px;
+}
+.ct__scroll:not(.ct__scroll--2) {
+  padding-bottom: 88px;
 }
 .ct__fab {
   width: 58px;
