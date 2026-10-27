@@ -3,8 +3,8 @@
   --im-black: #0c0c0c;
   --im-pink: #d70f64;
   position: relative;
-  width: 1160px;
-  min-height: 917px; /* grows with an expanded task; the board then scales down so nothing ever scrolls */
+  width: 1280px;
+  height: var(--stage-h, 889px); /* follows the browser height; the content scrolls inside */
   flex: none;
   display: flex;
   flex-direction: column;
@@ -28,7 +28,7 @@
   gap: 24px;
 }
 .im__brand {
-  width: 240px;
+  width: 230px;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -71,7 +71,7 @@
 }
 .im__vendor {
   flex: none;
-  width: 210px;
+  width: 250px;
   height: 50px;
   display: flex;
   align-items: center;
@@ -88,7 +88,7 @@
   justify-content: center;
   width: 150px;
   height: 46px;
-  padding: 0;
+  padding: 2px 0 0; /* Open Sans ink sits ~1px high in its line box: nudge so the glyphs are optically centered */
   white-space: nowrap;
   border: 0;
   border-radius: 100px;
@@ -141,6 +141,7 @@
 .im__main {
   flex: 1;
   min-width: 0;
+  overflow-y: auto;
   padding: 24px 24px 34px;
   display: flex;
   flex-direction: column;
@@ -1013,7 +1014,7 @@ input:checked + .ct__box svg {
   bottom: -72px;
   width: 160px;
   height: 40px;
-  padding: 0;
+  padding: 1px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;

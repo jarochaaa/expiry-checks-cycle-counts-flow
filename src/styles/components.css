@@ -1012,6 +1012,8 @@ button.thumb {
 }
 @media (min-width: 1100px) {
   .proto-nav {
+    z-index: 30;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
     position: fixed;
     left: 24px;
     top: 24px;
@@ -1028,8 +1030,30 @@ button.thumb {
     color: var(--text-primary);
   }
   .proto-nav__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 4px 8px 8px;
     font: 700 14px/1.2 var(--font-sans);
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .proto-nav[data-open='false'] {
+    width: auto;
+    padding: 8px 14px 8px 12px;
+    border-radius: 999px;
+  }
+  .proto-nav[data-open='false'] .proto-nav__title {
+    padding: 4px 0;
+  }
+  .proto-nav[data-open='false'] .proto-nav__chev {
+    transform: rotate(-45deg);
+  }
+  .proto-nav .proto-nav__title .proto-nav__chev {
+    transform: rotate(45deg);
+  }
+  .proto-nav[data-open='false'] .proto-nav__title .proto-nav__chev {
+    transform: rotate(-45deg);
   }
   .proto-nav__sub {
     padding: 10px 8px 4px;
@@ -2011,17 +2035,24 @@ button.ticket {
     left: calc(50% + 226px);
     z-index: 5;
     display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px;
-    border-radius: 999px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 12px 12px;
+    border-radius: 16px;
     background: var(--surface-app);
     border: 1px solid var(--border-card);
     font: 500 11px/1 var(--font-sans);
     color: var(--text-muted);
   }
   .lang-switch span {
-    padding: 0 8px 0 10px;
+    padding: 0 2px;
+    letter-spacing: 0.4px;
+  }
+  .lang-switch__opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
   }
   .lang-switch button {
     padding: 6px 12px;
@@ -2048,7 +2079,6 @@ button.ticket {
   }
   .side .lang-switch {
     display: flex;
-    flex-wrap: wrap;
     justify-self: stretch;
   }
   .side .view-tag {

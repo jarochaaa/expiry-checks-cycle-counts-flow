@@ -33,41 +33,9 @@ const WEB_VIEWS: { id: WebCommand['id']; group: string; label: string }[] = [
 ];
 const SAMPLE_TASK: CreatedTask = { id: '67893', date: '', skus: 3, products: ['sita', 'burine', 'chao'] };
 
-/** Desktop board: the website and the app always fit the window (no scrolling), scaled down when needed. */
-function useFit() {
-  const box = useRef<HTMLDivElement>(null);
-  const fit = useRef<HTMLDivElement>(null);
-  const [k, setK] = useState(1);
-  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  useEffect(() => {
-    const measure = () => {
-      const b = box.current;
-      const f = fit.current;
-      if (!b || !f || window.innerWidth < 1100) return setSize(null);
-      const w = f.offsetWidth;
-      const h = f.offsetHeight;
-      const cs = getComputedStyle(b);
-      const aw = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-      const ah = b.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      const s = Math.min(1, aw / w, ah / h);
-      setK(s);
-      setSize({ w: w * s, h: h * s });
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    if (box.current) ro.observe(box.current);
-    if (fit.current) ro.observe(fit.current);
-    window.addEventListener('resize', measure);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', measure);
-    };
-  }, []);
-  return { box, fit, k, size };
-}
-
 export default function App() {
-  const { box, fit, k, size } = useFit();
+  const box = useRef<HTMLDivElement>(null);
+  const [navOpen, setNavOpen] = useState(true);
   const [s, dispatch] = useReducer(reducer, initialState);
   // Tasks created in Inventory Management arrive in Pelican's Audits list
   const [created, setCreated] = useState<CreatedTask[]>([]);
@@ -78,7 +46,7 @@ export default function App() {
   const [open, setOpen] = useState({ im: true, pl: true });
   const webRef = useRef<HTMLElement>(null);
   const appRef = useRef<HTMLElement>(null);
-  const show = (_el: HTMLElement | null) => undefined; // everything is always in view
+  const show = (el: HTMLElement | null) => el?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
   const goWeb = (id: WebCommand['id']) => {
     if ((id === 'IM7' || id === 'IM8') && created.length === 0) {
       const d = new Date();
@@ -123,8 +91,13 @@ export default function App() {
   return (
     <I18nProvider value={i18n}>
     <div className="stage">
-      <nav className="proto-nav" aria-label="Prototype flow">
-        <div className="proto-nav__title">Cycle Count - Expiry Checks flow</div>
+      <nav className="proto-nav" aria-label="Prototype flow" data-open={navOpen}>
+        <button type="button" className="proto-nav__title" aria-expanded={navOpen} onClick={() => setNavOpen(!navOpen)}>
+          <span className="proto-nav__chev" aria-hidden />
+          Cycle Count - Expiry Checks flow
+        </button>
+        {navOpen && (
+          <>
 
         <button type="button" className="proto-nav__group" aria-expanded={open.im} onClick={() => setOpen({ ...open, im: !open.im })}>
           <span className="proto-nav__chev" aria-hidden />
@@ -164,11 +137,12 @@ export default function App() {
               </button>
             </div>
           ))}
+          </>
+        )}
       </nav>
 
-      <div className="board" ref={box}>
-        <div className="board__scaler" style={size ? { width: size.w, height: size.h } : undefined}>
-        <div className="board__fit" ref={fit} style={size ? { transform: `scale(${k})` } : undefined}>
+      <div className="board" ref={box} onScroll={(e) => e.currentTarget.scrollLeft > 8 && setNavOpen(false)}>
+        <div className="board__fit">
         <section className="board__web" aria-label="Inventory Management" ref={webRef}>
           <header className="board__title">
             <h2>Inventory Management - Creation &amp; Adjustment Flow</h2>
@@ -226,18 +200,19 @@ export default function App() {
 
             <div className="lang-switch" role="group" aria-label="App language">
               <span>App language</span>
-              {LANGS.map((l) => (
-                <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
-                  {l.label}
-                </button>
-              ))}
+              <div className="lang-switch__opts">
+                {LANGS.map((l) => (
+                  <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <TesterNotes s={s} code={codeFor(s)} />
           </div>
           </div>
         </section>
-        </div>
         </div>
       </div>
     </div>
