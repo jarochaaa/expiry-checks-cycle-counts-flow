@@ -1080,9 +1080,10 @@ input:checked + .ct__box svg {
   box-shadow: 0 6px 20px rgba(111, 111, 111, 0.18);
 }
 .im__task--open > .im__row { min-height: 66px; }
+.im__task--open { padding-bottom: 4px; }
 
 /* ---------- Expanded Expiry Checks task (Figma 47134:22123) ---------- */
-.td { margin: 0 8px 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; border-radius: 20px; background: #ebebeb; color: #161616; font-family: 'Open Sans', sans-serif; }
+.td { margin: 0 8px 20px; padding: 12px; display: flex; flex-direction: column; gap: 10px; border-radius: 20px; background: #ebebeb; color: #161616; font-family: 'Open Sans', sans-serif; }
 .td__top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .td__kpis { display: flex; gap: 10px; }
 .td-kpi { position: relative; width: 137px; height: 55px; border-radius: 10px; background: #fff; box-shadow: 0 8px 16px rgba(111, 111, 111, 0.14); }

@@ -4,6 +4,30 @@ import type { State } from '../state';
 
 const sum = (n: number[]) => n.reduce((a, b) => a + b, 0);
 
+/** How to recreate the edge cases on purpose (for the facilitator). */
+const EDGE_CASES: { title: string; steps: string[] }[] = [
+  {
+    title: 'Force an extra batch (expiry date not listed)',
+    steps: ['Open any product (tap the scan icon).', 'Tap “Add batches”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.'],
+  },
+  {
+    title: 'Force a recount (Stock Discrepancy)',
+    steps: ['Count a product with a total different from its expected units (e.g. Sita: 6 + 3 = 9 instead of 10).', 'Confirm. The product goes back to Recount: pills on its cards, a banner on the list and every location restarts from 0.', 'Count it again with the right numbers (or wrong ones) to finish the recount.'],
+  },
+  {
+    title: 'Out of Stock on a location',
+    steps: ['On the list, slide a card to the left and tap the red area (or swipe all the way).', 'On Chao Tuoi, marking location 2 Out of Stock also triggers a Recount, because the total no longer matches 24.'],
+  },
+  {
+    title: 'Second location appears',
+    steps: ['Chao Tuoi has 2 locations. Location 2 is created only after location 1 is confirmed.', 'Its expected total is split: location 1 + location 2 = 24 units.'],
+  },
+  {
+    title: 'Errors you cannot trigger by tapping',
+    steps: ['Scan failed (no connection), wrong product scanned and send/complete failures: use the “Edge cases” group in the left panel.'],
+  },
+];
+
 /** Desktop-only side box: what to do on the current screen and which numbers to type (a hint for the facilitator). */
 export function TesterNotes({ s, code }: { s: State; code: string }) {
   let title = 'Tester notes';
@@ -34,7 +58,8 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     if (s.recount[loc.product]) lines.unshift('RECOUNT: all locations of this product start again from 0.');
   } else if (s.screen === 'audits') {
     title = 'Cycle Counts';
-    lines.push('Only Expiry Checks tasks open. They appear here once you create them in Inventory Management (Create Count Task → Expiry Checks → Expiry Checks → Create).');
+    lines.push('In progress and To do are empty on purpose: tasks only appear here after you send them from Inventory Management (IM): Create Count Task → Expiry Checks → Expiry Checks → Create.');
+    lines.push('Each task lands first in To do with the same ID as in IM and contains only its own SKUs.');
     lines.push('Removal Tasks is a view only.');
   } else if (s.screen === 'skus') {
     title = 'Product list';
@@ -73,6 +98,19 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
           <li key={i}>{l}</li>
         ))}
       </ul>
+      <details className="edge" open={!!s.pdp || s.screen === 'skus'}>
+        <summary>Edge cases · how to recreate them</summary>
+        {EDGE_CASES.map((e) => (
+          <div key={e.title} className="edge__case">
+            <h3>{e.title}</h3>
+            <ol>
+              {e.steps.map((st, i) => (
+                <li key={i}>{st}</li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </details>
     </aside>
   );
 }

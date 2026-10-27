@@ -31,6 +31,13 @@ const WEB_VIEWS: { id: WebCommand['id']; group: string; label: string }[] = [
   { id: 'IM7', group: 'Expiry Checks tasks', label: 'Expiry Checks list' },
   { id: 'IM8', group: 'Expiry Checks tasks', label: 'Task expanded · waiting for Pelican' },
 ];
+/** Edge cases: each one starts with a titled row, followed by the states it goes through (preset ids from state.ts). */
+const USE_CASES: { title: string; hint: string; steps: string[] }[] = [
+  { title: 'USE CASE 1 · Force an extra batch', hint: 'Add batches → pick a date → type units', steps: ['pdp-hint-closed', 'calendar', 'qty-new-empty', 'pdp-new-batch'] },
+  { title: 'USE CASE 2 · Force a recount', hint: 'Type a wrong total, e.g. Sita 6 + 3', steps: ['pdp-hint-closed', 'pdp-entered', 'pdp-discrepancy', 'pdp-recount', 'processed-recount'] },
+  { title: 'USE CASE 3 · Out of Stock', hint: 'Slide a card to the left', steps: ['chao2-created', 'chao2-swipe', 'chao-banner', 'chao-swipe2'] },
+  { title: 'USE CASE 4 · Errors', hint: 'Cannot be triggered by tapping', steps: ['alert-network', 'alert-wrong', 'alert-complete', 'alert-send'] },
+];
 const SAMPLE_TASK: CreatedTask = { id: '67893', date: '', skus: 3, products: ['sita', 'burine', 'chao'] };
 
 export default function App() {
@@ -43,7 +50,7 @@ export default function App() {
   const [results, setResults] = useState<Record<string, TaskResult>>({});
   const [webCmd, setWebCmd] = useState<WebCommand | null>(null);
   const [webCode, setWebCode] = useState('IM1');
-  const [open, setOpen] = useState({ im: true, pl: true });
+  const [open, setOpen] = useState({ im: true, pl: true, uc: true });
   const webRef = useRef<HTMLElement>(null);
   const appRef = useRef<HTMLElement>(null);
   const show = (el: HTMLElement | null) => el?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
@@ -115,6 +122,34 @@ export default function App() {
             </div>
           ))}
 
+            <button type="button" className="proto-nav__group" aria-expanded={open.uc} onClick={() => setOpen({ ...open, uc: !open.uc })}>
+              <span className="proto-nav__chev" aria-hidden />
+              Edge cases
+              <em>{USE_CASES.length}</em>
+            </button>
+            {open.uc &&
+              USE_CASES.map((u) => (
+                <div key={u.title} style={{ display: 'contents' }}>
+                  <div className="proto-nav__uc">
+                    {u.title}
+                    <small>{u.hint}</small>
+                  </div>
+                  {u.steps.map((id) => {
+                    const p = PRESETS.find((x) => x.id === id)!;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        className={codeFor(s) === p.code ? 'is-on' : undefined}
+                        onClick={() => dispatch({ type: 'jump', preset: id })}
+                      >
+                        <b className="proto-nav__code">{p.code}</b>
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ))}
         <button type="button" className="proto-nav__group" aria-expanded={open.pl} onClick={() => setOpen({ ...open, pl: !open.pl })}>
           <span className="proto-nav__chev" aria-hidden />
           Pelican
