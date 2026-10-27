@@ -11,6 +11,12 @@ export interface Task {
 }
 
 /**
+ * Switch for the orange task strip on top of the app. Set to `true` to turn it back on
+ * (the numbering/derivation logic below keeps working while it is off).
+ */
+export const SHOW_TASK_BANNER = false;
+
+/**
  * Placeholder copy only. Real task texts get written later; keep ALL copy in this one place.
  * The numbering logic below is final: it is derived from the state and only ever goes up.
  */

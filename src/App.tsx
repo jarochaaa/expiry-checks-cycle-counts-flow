@@ -16,7 +16,7 @@ import './web/web.css';
 import { I18nProvider, LANGS, makeI18n } from './i18n';
 import { PdpScreen } from './screens/Pdp';
 import { PRESETS, codeFor, initialState, reducer } from './state';
-import { taskFor } from './tasks';
+import { SHOW_TASK_BANNER, taskFor } from './tasks';
 
 const SEND_MS = 1400;
 
@@ -202,8 +202,8 @@ export default function App() {
             </div>
           </header>
           <div className="board__row">
-      <div className="app">
-        <TaskBanner task={taskFor(s)} code={codeFor(s)} />
+      <div className={SHOW_TASK_BANNER ? 'app' : 'app app--no-banner'}>
+        {SHOW_TASK_BANNER && <TaskBanner task={taskFor(s)} code={codeFor(s)} />}
 
         <div className="app__view" dir={i18n.rtl ? 'rtl' : 'ltr'} lang={s.lang}>
           {s.screen === 'audits' && <Audits tab={s.auditsTab} created={created} dispatch={dispatch} />}

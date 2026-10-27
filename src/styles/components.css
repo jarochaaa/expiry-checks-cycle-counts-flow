@@ -2122,6 +2122,16 @@ button.ticket {
 }
 
 @media (min-width: 1100px) {
+  .side .tester-notes {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .side .view-tag,
+  .side .lang-switch {
+    flex: none;
+  }
   .side .lang-switch,
   .side .view-tag,
   .side .tester-notes {

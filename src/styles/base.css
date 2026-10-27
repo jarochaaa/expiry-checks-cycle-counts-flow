@@ -80,6 +80,11 @@ img {
   }
 }
 
+/* Task strip switched off (see SHOW_TASK_BANNER in tasks.ts): the app is just the dark view */
+.app--no-banner {
+  background: var(--surface-app);
+}
+
 /* The dark view under the task banner: rounded top corners over the orange strip. */
 .app__view {
   position: relative;
@@ -229,6 +234,8 @@ img {
     flex-direction: column;
     gap: 12px;
     width: 280px;
+    /* same height as the phone: the hints box takes what is left under View and App language and scrolls inside */
+    height: min(917px, var(--stage-h));
     position: sticky;
     top: 0;
   }
