@@ -97,12 +97,10 @@ interface Row {
   stock: number;
   loc: string;
 }
-const STOCK: Record<ProductId, number[]> = { sita: [6, 4], burine: [20], chao: [11, 8, 5] };
 const ORDER: ProductId[] = ['sita', 'burine', 'chao'];
-const rowsFor = (p: ProductId): Row[] => {
-  const loc = LOCS.find((l) => l.product === p)!;
-  return loc.dates.map((d, i) => ({ product: p, date: d.replace(/\./g, '/'), stock: STOCK[p][i], loc: loc.code }));
-};
+/** One row per location and expiry date: a product that sits in several locations is listed once for each of them. */
+const rowsFor = (p: ProductId): Row[] =>
+  LOCS.filter((l) => l.product === p).flatMap((loc) => loc.dates.map((d, i) => ({ product: p, date: d.replace(/\./g, '/'), stock: loc.pass[i], loc: loc.code })));
 export const STOCK_ROWS = rowsFor;
 /** Per location: the expiry dates with the units the system expects there (stock on hand). */
 export const LOC_GROUPS = (p: ProductId) =>
