@@ -186,7 +186,7 @@ img {
     gap: 24px;
   }
   .app {
-    height: min(917px, var(--stage-h));
+    height: var(--stage-h); /* phone, website and hints column all follow the browser height */
   }
   /* Title card above each product: what it is, in one glance */
   .board__title {
@@ -235,7 +235,7 @@ img {
     gap: 12px;
     width: 280px;
     /* same height as the phone: the hints box takes what is left under View and App language and scrolls inside */
-    height: min(917px, var(--stage-h));
+    height: var(--stage-h);
     position: sticky;
     top: 0;
   }
