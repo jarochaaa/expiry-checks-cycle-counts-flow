@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { LOCS, PRODUCTS } from '../data';
 import type { ProductId } from '../data';
@@ -33,7 +33,62 @@ const I = {
   plus: <S size={14}><path d="M12 5v14M5 12h14" /></S>,
   bottle: <S size={16}><path d="M10 3h4v4l2 3v11H8V10l2-3V3z" /></S>,
   layers: <S size={16}><path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5" /></S>,
+  cal: <S size={16}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></S>,
+  prev: <S size={14}><path d="M15 6l-6 6 6 6" /></S>,
+  next: <S size={14}><path d="M9 6l6 6-6 6" /></S>,
 };
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const parseDate = (v: string) => {
+  const [d, m, y] = v.split('/').map(Number);
+  return d && m && y ? new Date(y, m - 1, d) : new Date(2026, 6, 1);
+};
+
+/** Calendar popover used by Start / End Date. */
+function DatePicker({ value, onPick, onClose }: { value: string; onPick: (v: string) => void; onClose: () => void }) {
+  const sel = parseDate(value);
+  const [view, setView] = useState({ y: sel.getFullYear(), m: sel.getMonth() });
+  const first = new Date(view.y, view.m, 1).getDay();
+  const days = new Date(view.y, view.m + 1, 0).getDate();
+  const go = (delta: number) => {
+    const n = view.y * 12 + view.m + delta;
+    setView({ y: Math.floor(n / 12), m: n % 12 });
+  };
+  return (
+    <div className="ct-cal" role="dialog" aria-label="Choose a date" onClick={(e) => e.stopPropagation()}>
+      <div className="ct-cal__nav">
+        <button type="button" aria-label="Previous month" onClick={() => go(-1)}>
+          {I.prev}
+        </button>
+        <b>
+          {MONTHS[view.m]} {view.y}
+        </b>
+        <button type="button" aria-label="Next month" onClick={() => go(1)}>
+          {I.next}
+        </button>
+      </div>
+      <div className="ct-cal__grid">
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((w, i) => (
+          <span key={i} className="ct-cal__dow">
+            {w}
+          </span>
+        ))}
+        {Array.from({ length: first }, (_, i) => (
+          <span key={`b${i}`} />
+        ))}
+        {Array.from({ length: days }, (_, i) => {
+          const day = i + 1;
+          const on = sel.getFullYear() === view.y && sel.getMonth() === view.m && sel.getDate() === day;
+          return (
+            <button key={day} type="button" aria-label={`${day} ${MONTHS[view.m]} ${view.y}`} aria-pressed={on} className={on ? 'ct-cal__day ct-cal__day--on' : 'ct-cal__day'} onClick={() => (onPick(`${day}/${view.m + 1}/${view.y}`), onClose())}>
+              {day}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 /* --- the 3 Pelican products, split into expiry-level rows (same dates / locations as the app) --- */
 interface Row {
@@ -49,6 +104,9 @@ const rowsFor = (p: ProductId): Row[] => {
   return loc.dates.map((d, i) => ({ product: p, date: d.replace(/\./g, '/'), stock: STOCK[p][i], loc: loc.code }));
 };
 export const STOCK_ROWS = rowsFor;
+/** Per location: the expiry dates with the units the system expects there (stock on hand). */
+export const LOC_GROUPS = (p: ProductId) =>
+  LOCS.filter((l) => l.product === p).map((l) => ({ id: l.id, code: l.code, rows: l.dates.map((d, i) => ({ date: d.replace(/\./g, '/'), stock: l.pass[i] })) }));
 const sum = (r: Row[]) => r.reduce((n, x) => n + x.stock, 0);
 
 export interface CreatedTask {
@@ -58,11 +116,20 @@ export interface CreatedTask {
   products: ProductId[];
 }
 
-export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreate: (tasks: CreatedTask[]) => void }) {
-  const [step, setStep] = useState<1 | 2>(1);
+export interface CreateInitial {
+  step: 1 | 2;
+  /** Expiry Checks tile + granularity already chosen (step 1) */
+  pick?: boolean;
+  batches?: number;
+  expand?: boolean;
+}
+
+export function CreateTask({ onClose, onCreate, initial, onView }: { onClose: () => void; onCreate: (tasks: CreatedTask[]) => void; initial?: CreateInitial; onView?: (code: string) => void }) {
+  const [step, setStep] = useState<1 | 2>(initial?.step ?? 1);
   const [tab, setTab] = useState<Tab>('counting');
-  const [pick, setPick] = useState<Pick | null>(null);
-  const [gran, setGran] = useState<Gran | null>(null);
+  const [pick, setPick] = useState<Pick | null>(initial?.step === 2 || initial?.pick ? 'expiry' : null);
+  const [gran, setGran] = useState<Gran | null>(initial?.step === 2 || initial?.pick ? 'expiry' : null);
+  const [picking, setPicking] = useState<'start' | 'end' | null>(null);
   const [removal, setRemoval] = useState(false);
 
   // step 2
@@ -71,9 +138,9 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
   const [start, setStart] = useState('1/7/2026');
   const [end, setEnd] = useState('1/8/2026');
   const [totalSkus, setTotalSkus] = useState(3);
-  const [batchCount, setBatchCount] = useState(1);
+  const [batchCount, setBatchCount] = useState(initial?.batches ?? 1);
   const [checked, setChecked] = useState<Record<number, boolean>>({ 0: true, 1: true, 2: true });
-  const [expanded, setExpanded] = useState<number | null>(null);
+  const [expanded, setExpanded] = useState<number | null>(initial?.expand ? 0 : null);
 
   const products = ORDER.slice(0, totalSkus);
   const batches = useMemo(() => {
@@ -85,6 +152,11 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
   const allRows = products.flatMap(rowsFor);
   const selected = batches.map((_, i) => checked[i] !== false);
   const selectedCount = selected.filter(Boolean).length;
+
+  const code = step === 1 ? (tab === 'counting' && pick ? 'IM4' : 'IM3') : expanded != null ? 'IM6' : 'IM5';
+  useEffect(() => {
+    onView?.(code);
+  }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const canNext = tab === 'counting' ? pick === 'expiry' && gran === 'expiry' : removal;
   const showGran = tab === 'counting' && (pick === 'random' || pick === 'hybrid' || pick === 'manual' || pick === 'expiry');
@@ -129,7 +201,7 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
     <div className="im-modal-wrap" onClick={onClose}>
       <div className="ct" role="dialog" aria-label="Create a Count Task" onClick={(e) => e.stopPropagation()}>
         <header className="ct__head">
-          <h2>{step === 1 ? 'Create a Count Task' : 'Expiry Date Checks'}</h2>
+          <h2>{step === 1 ? 'Create a Count Task' : 'Expiry Checks'}</h2>
           <button type="button" className="ct__close" aria-label="Close" onClick={onClose}>
             {I.arrow}
           </button>
@@ -167,7 +239,7 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
                       <Tile id="random" icon={I.shuffle} label="Random Sample" on={pick === 'random'} onClick={() => setPick('random')} />
                       <Tile id="hybrid" icon={I.hybrid} label="Hybrid Sample" on={pick === 'hybrid'} onClick={() => setPick('hybrid')} />
                       <Tile id="manual" icon={I.upload} label={<>Manual (Upload<br />CSV)</>} on={pick === 'manual'} onClick={() => setPick('manual')} />
-                      <Tile id="expiry" icon={I.expiry} label="Expiry Based" on={pick === 'expiry'} onClick={() => setPick('expiry')} />
+                      <Tile id="expiry" icon={I.expiry} label="Expiry Checks" on={pick === 'expiry'} onClick={() => setPick('expiry')} />
                     </div>
                     {pick === 'manual' && (
                       <div className="ct__upload">
@@ -192,8 +264,8 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
                     <div className="ct__card">
                       <p>Choose the granularity of the counting task</p>
                       <div className="ct__tiles ct__tiles--2">
-                        <Tile id="location" icon={I.pin} label={<b>Location level checks</b>} sub="Count units for each location" on={gran === 'location'} onClick={() => setGran('location')} />
-                        <Tile id="gexpiry" icon={I.expiry} label={<b>Expiry level checks</b>} sub="Count units for each expiry" on={gran === 'expiry'} onClick={() => setGran('expiry')} />
+                        <Tile id="location" icon={I.pin} label={<b>Count Checks</b>} sub="Count units for each location" on={gran === 'location'} onClick={() => setGran('location')} />
+                        <Tile id="gexpiry" icon={I.expiry} label={<b>Expiry Checks</b>} sub="Count units for each expiry" on={gran === 'expiry'} onClick={() => setGran('expiry')} />
                       </div>
                     </div>
                   )}
@@ -239,14 +311,22 @@ export function CreateTask({ onClose, onCreate }: { onClose: () => void; onCreat
                       ))}
                     </div>
                     <div className="ct__dates">
-                      <label>
+                      <div className="ct__date">
                         <b>Start Date</b>
-                        <input value={start} onChange={(e) => (setStart(e.target.value), setRange('custom'))} />
-                      </label>
-                      <label>
+                        <button type="button" className="ct__date-field" aria-haspopup="dialog" aria-expanded={picking === 'start'} onClick={() => setPicking(picking === 'start' ? null : 'start')}>
+                          <span>{start}</span>
+                          {I.cal}
+                        </button>
+                        {picking === 'start' && <DatePicker value={start} onPick={(v) => (setStart(v), setRange('custom'))} onClose={() => setPicking(null)} />}
+                      </div>
+                      <div className="ct__date">
                         <b>End Date</b>
-                        <input value={end} onChange={(e) => (setEnd(e.target.value), setRange('custom'))} />
-                      </label>
+                        <button type="button" className="ct__date-field" aria-haspopup="dialog" aria-expanded={picking === 'end'} onClick={() => setPicking(picking === 'end' ? null : 'end')}>
+                          <span>{end}</span>
+                          {I.cal}
+                        </button>
+                        {picking === 'end' && <DatePicker value={end} onPick={(v) => (setEnd(v), setRange('custom'))} onClose={() => setPicking(null)} />}
+                      </div>
                     </div>
                     <div className="ct__filter-actions">
                       <button type="button" className="ct__ghost" onClick={clearAll}>

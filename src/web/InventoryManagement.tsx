@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { PRODUCTS } from '../data';
-import type { ProductId } from '../data';
+import { useEffect, useState } from 'react';
 import carrot from '../assets/web/carrot.svg';
-import { CreateTask, STOCK_ROWS } from './CreateTask';
-import type { CreatedTask } from './CreateTask';
+import { CreateTask } from './CreateTask';
+import { TaskDetail, taskTotals } from './TaskDetail';
+import type { TaskResult } from './TaskDetail';
+import type { CreateInitial, CreatedTask } from './CreateTask';
 
 const KPIS = [
   { label: 'Count Task Completed', value: '450', icon: 'bottle' },
@@ -50,18 +50,42 @@ const Icon = {
   archive: <Svg><rect x="3" y="4" width="18" height="5" /><path d="M5 9v11h14V9M10 13h4" /></Svg>,
 };
 
-/** Counts sent back from Pelican: product → expiry date (DD/MM/YYYY) → units counted */
-export interface TaskResult {
-  at: string;
-  counted: Partial<Record<ProductId, Record<string, number>>>;
+export type { TaskResult };
+
+/** Jump requested from the left navigator: which view of the website to show. */
+export interface WebCommand {
+  id: 'IM1' | 'IM2' | 'IM3' | 'IM4' | 'IM5' | 'IM6' | 'IM7' | 'IM8';
+  n: number;
 }
 
-export function InventoryManagement({ created, results, onCreateTasks }: { created: CreatedTask[]; results: Record<string, TaskResult>; onCreateTasks: (tasks: CreatedTask[]) => void }) {
+export function InventoryManagement({ created, results, command, onCode, onCreateTasks }: { created: CreatedTask[]; results: Record<string, TaskResult>; command: WebCommand | null; onCode: (code: string) => void; onCreateTasks: (tasks: CreatedTask[]) => void }) {
   const [creating, setCreating] = useState(false);
   const [sent, setSent] = useState<number | null>(null);
   const [tab, setTab] = useState<'regular' | 'wall' | 'expiry'>('regular');
   const [open, setOpen] = useState<number | null>(null);
   const [openTask, setOpenTask] = useState<string | null>(null);
+  const [initial, setInitial] = useState<CreateInitial | undefined>(undefined);
+  const [popupCode, setPopupCode] = useState('IM3');
+
+  // View codes: every state of the website has one (IM1…IM9), shown in the title and used by the navigator
+  const code = creating ? popupCode : tab === 'regular' ? 'IM1' : tab === 'wall' ? 'IM2' : openTask ? (results[openTask] ? 'IM9' : 'IM8') : 'IM7';
+  useEffect(() => {
+    onCode(code);
+  }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!command) return;
+    const c = command.id;
+    setSent(null);
+    if (c === 'IM1' || c === 'IM2' || c === 'IM7' || c === 'IM8') {
+      setCreating(false);
+      setTab(c === 'IM1' ? 'regular' : c === 'IM2' ? 'wall' : 'expiry');
+      setOpenTask(c === 'IM8' ? (created[0]?.id ?? null) : null);
+    } else {
+      setInitial(c === 'IM3' ? undefined : c === 'IM4' ? { step: 1, pick: true } : c === 'IM5' ? { step: 2 } : { step: 2, batches: 3, expand: true });
+      setCreating(true);
+    }
+  }, [command]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="im" lang="en" dir="ltr">
       <header className="im__header">
@@ -77,7 +101,7 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
           <b>Darkstores QA Vendor 001</b>
           <span className="im__down">{Icon.down}</span>
         </div>
-        <button type="button" className="im__create" onClick={() => setCreating(true)}>
+        <button type="button" className="im__create" onClick={() => (setInitial(undefined), setCreating(true))}>
           Create Count Task
         </button>
       </header>
@@ -112,7 +136,7 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
               Wall to Wall Counts
             </button>
             <button type="button" role="tab" aria-selected={tab === 'expiry'} onClick={() => setTab('expiry')}>
-              Expiry Tasks
+              Expiry Checks
             </button>
           </div>
 
@@ -138,22 +162,20 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
                 const isOpen = openTask === t.id;
                 const res = results[t.id];
                 const [d, tm] = (res ? res.at : t.date).split(' – ');
-                const rows = t.products.flatMap(STOCK_ROWS);
-                const cnt = (r: { product: ProductId; date: string }) => res?.counted[r.product]?.[r.date] ?? 0;
-                const diff = rows.filter((r) => res && cnt(r) !== r.stock).length;
-                const countedTotal = rows.reduce((n, r) => n + cnt(r), 0);
+                const tot = taskTotals(t, res);
+                const label = !res ? 'Unassigned' : tot.discrepancies ? 'Discrepancy' : 'Completed';
                 return (
                   <div key={t.id} className={isOpen ? 'im__task im__task--open' : 'im__task'}>
                     <div className="im__row im__row--exp">
                       <span>{t.id}</span>
-                      <span>Expiry Date Checks</span>
-                      <span className={res ? 'im__status im__status--done' : 'im__status'}>
-                        <b>{res ? 'Completed' : 'Unassigned'}</b>
+                      <span>Expiry Checks</span>
+                      <span className={!res ? 'im__status' : tot.discrepancies ? 'im__status im__status--bad' : 'im__status im__status--done'}>
+                        <b>{label}</b>
                         <i />
                         <i />
                         <i />
                       </span>
-                      <span>{t.skus} SKUs</span>
+                      <span>{t.skus} SKU{t.skus === 1 ? '' : 's'}</span>
                       <span>
                         {d.replace(/\//g, '.')}
                         <br />
@@ -163,109 +185,7 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
                         {Icon.chevron}
                       </button>
                     </div>
-                    {isOpen && (
-                      <div className="im__detail">
-                        <div className="im__detail-top">
-                          <div className="im__mini">
-                            <span>Total SKUs</span>
-                            <b>{t.skus}</b>
-                          </div>
-                          <div className="im__mini">
-                            <span>Total Units</span>
-                            <b>{res ? countedTotal : rows.reduce((n, r) => n + r.stock, 0)}</b>
-                          </div>
-                          <div className="im__mini">
-                            <span>Discrepancies</span>
-                            <b>{diff}</b>
-                          </div>
-                          <h4>Picker: {res ? 'Pelican user' : 'Unassigned'}</h4>
-                        </div>
-                        <div className="im__actions">
-                          <b>Actions:</b>
-                          <button type="button" className="im__act">
-                            Download
-                          </button>
-                          <button type="button" className="im__act im__act--go" disabled={!res}>
-                            Adjust and complete
-                          </button>
-                        </div>
-                        <div className="im__filter im__filter--inner">
-                          <span>
-                            {Icon.filter}
-                            <b>Filter</b>
-                          </span>
-                          <span className="im__filter-btn">{Icon.down}</span>
-                        </div>
-                        <div className="im__sku-table">
-                          <div className="im__sku im__sku--head">
-                            <span>IMAGE</span>
-                            <span>SKU</span>
-                            <span>LOCATION</span>
-                            <span>EXPIRY DATE</span>
-                            <span>STOCK ON HAND</span>
-                            <span>COUNTED/ REMOVED</span>
-                            <span>TASK</span>
-                            <span>DATE</span>
-                            <span>ADJUSTMENT</span>
-                          </div>
-                          {t.products.map((p) => {
-                            const pr = PRODUCTS[p];
-                            const rs = STOCK_ROWS(p);
-                            return (
-                              <div key={p} className="im__sku im__sku--card">
-                                <span className="im__sku-img">
-                                  <img src={pr.image} alt="" />
-                                </span>
-                                <span className="im__sku-name">
-                                  {pr.name}
-                                  <small>
-                                    <b>Barcode:</b> {pr.barcode}
-                                  </small>
-                                  <small>
-                                    <b>SKU:</b> {pr.sku}
-                                  </small>
-                                </span>
-                                <span className="im__sku-loc">
-                                  <i>{rs[0].loc}</i>
-                                </span>
-                                <span className="im__sku-lines">
-                                  {rs.map((r) => (
-                                    <span key={r.date}>{r.date.replace(/\//g, '/')}</span>
-                                  ))}
-                                </span>
-                                <span className="im__sku-lines">
-                                  {rs.map((r) => (
-                                    <span key={r.date}>{r.stock}</span>
-                                  ))}
-                                </span>
-                                <span className="im__sku-lines">
-                                  {rs.map((r) => (
-                                    <span key={r.date} className={res && cnt(r) !== r.stock ? 'im__bad' : undefined}>
-                                      {res ? cnt(r) : '–'}
-                                    </span>
-                                  ))}
-                                </span>
-                                <span className="im__sku-lines">
-                                  {rs.map((r) => (
-                                    <span key={r.date}>Expiry Check</span>
-                                  ))}
-                                </span>
-                                <span className="im__sku-lines im__sku-lines--date">
-                                  {rs.map((r) => (
-                                    <span key={r.date}>
-                                      {d.replace(/\//g, '.')}
-                                      <br />
-                                      {tm}
-                                    </span>
-                                  ))}
-                                </span>
-                                <span className="im__sku-adj">{res ? rs.reduce((n, r) => n + (cnt(r) - r.stock), 0) : '–'}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
+                    {isOpen && <TaskDetail task={t} res={res} date={d.replace(/\//g, '.')} time={tm} />}
                   </div>
                 );
               })}
@@ -288,7 +208,7 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
               </div>
               <div className="im__row im__row--exp">
                 <span>59112207</span>
-                <span>Expiry Date Checks</span>
+                <span>Expiry Checks</span>
                 <span className="im__status">
                   <b>Unassigned</b>
                   <i />
@@ -350,6 +270,9 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
 
       {creating && (
         <CreateTask
+          key={command?.n ?? 0}
+          initial={initial}
+          onView={setPopupCode}
           onClose={() => setCreating(false)}
           onCreate={(tasks) => {
             setCreating(false);
@@ -362,7 +285,7 @@ export function InventoryManagement({ created, results, onCreateTasks }: { creat
       )}
       {sent != null && (
         <div className="im-toast" role="status">
-          {sent} Expiry Level task{sent > 1 ? 's' : ''} sent to Pelican
+          {sent} Expiry Checks task{sent > 1 ? 's' : ''} sent to Pelican
         </div>
       )}
     </div>

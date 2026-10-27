@@ -32,12 +32,16 @@ function QtySheet({ pdp, dispatch }: { pdp: PdpState; dispatch: Dispatch<Action>
   const loc = LOC_BY_ID[pdp.loc];
   const ref = useRef<HTMLInputElement>(null);
   const inset = useKeyboardInset(true);
+  // The sheet stays open while it moves on to the next expiry date: only that swap is animated
+  const first = useRef(sheet.date);
+  const advanced = first.current !== sheet.date;
   useEffect(() => {
     ref.current?.focus();
-  }, []);
+  }, [sheet.date]);
   return (
     <div className="p-overlay pl" style={{ paddingBottom: inset }} onClick={() => dispatch({ type: 'sheetCancel' })}>
       <div className="qsheet" role="dialog" aria-label="Quantity" onClick={(e) => e.stopPropagation()}>
+        <div className={advanced ? 'qsheet__slide qsheet__slide--next' : 'qsheet__slide'} key={sheet.date}>
         <div className="loc-tag"><bdi>{loc.code}</bdi></div>
         <p className="qsheet__label">{t('countAll')}</p>
         <span className="ptag">{sheet.date}</span>
@@ -55,6 +59,7 @@ function QtySheet({ pdp, dispatch }: { pdp: PdpState; dispatch: Dispatch<Action>
           onChange={(e) => dispatch({ type: 'qtyType', value: e.target.value })}
           onKeyDown={(e) => e.key === 'Enter' && dispatch({ type: 'qtyDone' })}
         />
+        </div>
         <button type="button" className="p-btn" onClick={() => dispatch({ type: 'qtyDone' })}>
           {t('done')}
         </button>

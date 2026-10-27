@@ -9,7 +9,7 @@ export const LANGS: { id: Lang; label: string }[] = [
 ];
 
 const en = {
-  audits: 'Audits',
+  audits: 'Cycle Counts',
   countTasks: 'Count Tasks',
   removalTasks: 'Removal Tasks',
   cycleCount: 'Cycle Count',
@@ -20,8 +20,8 @@ const en = {
   receiving: 'Receiving',
   more: 'More',
   products: '{n} products',
-  locationLevel: 'Location level',
-  expiryLevel: 'Expiry Level',
+  locationLevel: 'Count Checks',
+  expiryLevel: 'Expiry Checks',
   language: 'Language',
   help: 'Help and language',
   startTitle: 'Do you want to start this task?',
@@ -64,7 +64,7 @@ const en = {
 type Dict = typeof en;
 
 const es: Dict = {
-  audits: 'Auditorías',
+  audits: 'Cycle Counts',
   countTasks: 'Tareas de conteo',
   removalTasks: 'Tareas de retiro',
   cycleCount: 'Conteo cíclico',
@@ -75,8 +75,8 @@ const es: Dict = {
   receiving: 'Recepción',
   more: 'Más',
   products: '{n} productos',
-  locationLevel: 'Nivel de ubicación',
-  expiryLevel: 'Nivel de vencimiento',
+  locationLevel: 'Count Checks',
+  expiryLevel: 'Expiry Checks',
   language: 'Idioma',
   help: 'Ayuda e idioma',
   startTitle: '¿Quieres iniciar esta tarea?',
@@ -117,7 +117,7 @@ const es: Dict = {
 };
 
 const ar: Dict = {
-  audits: 'التدقيق',
+  audits: 'Cycle Counts',
   countTasks: 'مهام الجرد',
   removalTasks: 'مهام الإزالة',
   cycleCount: 'الجرد الدوري',
@@ -128,8 +128,8 @@ const ar: Dict = {
   receiving: 'الاستلام',
   more: 'المزيد',
   products: '{n} منتجات',
-  locationLevel: 'مستوى الموقع',
-  expiryLevel: 'مستوى الصلاحية',
+  locationLevel: 'Count Checks',
+  expiryLevel: 'Expiry Checks',
   language: 'اللغة',
   help: 'المساعدة واللغة',
   startTitle: 'هل تريد بدء هذه المهمة؟',

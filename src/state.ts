@@ -43,6 +43,8 @@ export interface State {
   auditsTab: AuditsTab;
   /** task the tester picked on the Audits list */
   taskId: string;
+  /** products in the task the tester opened (a task can hold 1–3 of the Pelican products) */
+  scope: ProductId[];
   sheet: null | 'start' | 'send';
   sending: boolean;
   tab: Tab;
@@ -78,6 +80,7 @@ export const initialState: State = {
   screen: 'audits',
   auditsTab: 'count',
   taskId: '67891',
+  scope: ['sita', 'burine', 'chao'],
   sheet: null,
   sending: false,
   tab: 'todo',
@@ -101,7 +104,7 @@ export type Action =
   | { type: 'auditsTab'; tab: AuditsTab }
   | { type: 'openLanguage' }
   | { type: 'setLang'; lang: Lang; leave?: boolean }
-  | { type: 'openTicket'; id: string }
+  | { type: 'openTicket'; id: string; scope?: ProductId[] }
   | { type: 'closeSheet' }
   | { type: 'start' }
   | { type: 'back' }
@@ -136,8 +139,11 @@ export const ALERTS = { network: 'network', wrong: 'wrong', error: 'error' } as 
 /** A location is listed unless it is created later (after another location is counted) and hasn't been yet. */
 export const isListed = (s: State, id: LocId) => !LOC_BY_ID[id].unlockedBy || !!s.unlocked[id];
 
+/** Locations of the products in the task being counted, in route order. */
+export const scopedLocs = (s: State): LocId[] => LOC_ORDER.filter((id) => s.scope.includes(LOC_BY_ID[id].product));
+
 export const pendingLocs = (s: State): LocId[] => {
-  const base = LOC_ORDER.filter((id) => isListed(s, id) && !s.locs[id].done);
+  const base = scopedLocs(s).filter((id) => isListed(s, id) && !s.locs[id].done);
   const rank = (id: LocId) => {
     const p = LOC_BY_ID[id].product;
     if (!s.recount[p]) return 1000 + LOC_ORDER.indexOf(id);
@@ -149,7 +155,7 @@ export const pendingLocs = (s: State): LocId[] => {
 };
 
 export const doneLocs = (s: State): LocId[] =>
-  LOC_ORDER.filter((id) => s.locs[id].done).sort((a, b) => s.locs[b].seq - s.locs[a].seq);
+  scopedLocs(s).filter((id) => s.locs[id].done).sort((a, b) => s.locs[b].seq - s.locs[a].seq);
 
 export const pillFor = (s: State, id: LocId): Pill => {
   const p = LOC_BY_ID[id].product;
@@ -160,7 +166,7 @@ export const pillFor = (s: State, id: LocId): Pill => {
   return null;
 };
 
-export const allDone = (s: State) => LOC_ORDER.every((id) => s.locs[id].done);
+export const allDone = (s: State) => scopedLocs(s).every((id) => s.locs[id].done);
 
 const productComplete = (s: State, p: ProductId) => productLocs(p).every((l) => s.locs[l].done);
 const productTotal = (s: State, p: ProductId) => productLocs(p).reduce((n, l) => n + s.locs[l].count, 0);
@@ -176,8 +182,11 @@ function afterCount(s: State, loc: LocId, viaPdp: boolean): State {
   const p = LOC_BY_ID[loc].product;
   if (s.recount[p]) {
     // recount finished for this product → pills disappear, discrepancy resolved
-    if (productComplete(s, p)) return { ...s, recount: { ...s.recount, [p]: false }, banner: false, tab: 'done' };
-    return { ...s, banner: false, tab: 'done' };
+    if (productComplete(s, p)) {
+      const n = { ...s, recount: { ...s.recount, [p]: false }, banner: false };
+      return { ...n, tab: nextTab(n) };
+    }
+    return { ...s, banner: false, tab: nextTab(s) };
   }
   if (productComplete(s, p) && productTotal(s, p) !== PRODUCTS[p].expected) {
     const locs = { ...s.locs };
@@ -193,8 +202,11 @@ function afterCount(s: State, loc: LocId, viaPdp: boolean): State {
       pdp: viaPdp ? { loc, batches: locs[loc].batches, banner: true, sheet: null } : null,
     };
   }
-  return { ...s, tab: 'done' };
+  return { ...s, tab: nextTab(s) };
 }
+
+/** After a product is finished the tester moves on to the next one (To be processed); Checked only when nothing is left. */
+const nextTab = (s: State): Tab => (allDone(s) ? 'done' : 'todo');
 
 /** Counting a location creates the locations that depend on it. */
 const unlockAfter = (s: State, loc: LocId) => ({
@@ -213,7 +225,7 @@ export function reducer(s: State, a: Action): State {
     case 'setLang':
       return { ...s, lang: a.lang, screen: a.leave ? 'audits' : s.screen };
     case 'openTicket':
-      return { ...s, taskId: a.id, sheet: 'start' };
+      return { ...initialState, lang: s.lang, alertId: s.alertId, auditsTab: s.auditsTab, taskId: a.id, scope: a.scope ?? initialState.scope, sheet: 'start' };
     case 'closeSheet':
       return { ...s, sheet: null };
     case 'start':
@@ -243,8 +255,17 @@ export function reducer(s: State, a: Action): State {
       if (!s.pdp || !sh || sh.kind !== 'qty') return s;
       const qty = sh.value ? parseInt(sh.value, 10) : 0;
       const exists = s.pdp.batches.some((b) => b.date === sh.date);
+      const prev = s.pdp.batches.find((b) => b.date === sh.date);
       const batches = exists ? s.pdp.batches.map((b) => (b.date === sh.date ? { ...b, qty } : b)) : [...s.pdp.batches, { date: sh.date, qty }];
-      return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet: null } };
+      // First time a date is captured → the same sheet moves on to the next date still to capture (one tap less)
+      let sheet: PdpSheet = null;
+      if (!sh.isNew && qty > 0 && (!prev || prev.qty === 0)) {
+        const i = batches.findIndex((b) => b.date === sh.date);
+        const order = [...batches.slice(i + 1), ...batches.slice(0, i)];
+        const next = order.find((b) => b.qty === 0);
+        if (next) sheet = { kind: 'qty', date: next.date, isNew: false, value: '' };
+      }
+      return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet } };
     }
     case 'openCalendar':
       return withSheet(s, { kind: 'calendar', viewY: 2026, viewM: 7, y: 2026, m: 7, d: 17 });
@@ -335,6 +356,7 @@ const filled = (loc: LocId, ...vals: string[]): Action[] => [...scan(loc), ...LO
 const fill = (loc: LocId, ...vals: string[]): Action[] => [...filled(loc, ...vals), { type: 'confirm' }];
 const oos = (loc: LocId): Action[] => [{ type: 'swipe', loc }, { type: 'oos', loc }];
 const todo: Action = { type: 'tab', tab: 'todo' };
+const done: Action = { type: 'tab', tab: 'done' };
 const hint: Action = { type: 'closeHint' };
 const newBatch: Action[] = [{ type: 'openCalendar' }, { type: 'calApply' }];
 
@@ -359,7 +381,7 @@ const CODES: Record<string, string> = {
   'calendar': 'G1', 'detail': 'H1', 'send': 'I1', 'alert-send': 'I2', 'loading': 'J1', 'summary': 'K1',
 };
 const TITLES: Record<string, string> = {
-  A: 'Audits', B: 'Start task sheet', C: 'SKU list · To be processed', D: 'SKU list · Checked', E: 'Product page · expiry batches',
+  A: 'Cycle Counts', B: 'Start task sheet', C: 'SKU list · To be processed', D: 'SKU list · Checked', E: 'Product page · expiry batches',
   F: 'Quantity sheet', G: 'Expiry date calendar', H: 'Product image', I: 'Send sheet', J: 'Sending', K: 'Summary',
 };
 const P = (id: string, label: string, actions: Action[]): Preset => {
@@ -385,10 +407,10 @@ const RAW: Preset[] = [
   P('alert-network', 'Scan failed · no connection', [...START, { type: 'alert', text: ALERTS.network }]),
   P('alert-wrong', 'Wrong product scanned', [...S1, { type: 'alert', text: ALERTS.wrong }]),
 
-  P('processed-1', 'Checked · 1 item (Sita)', S1.slice(0, -1)),
-  P('processed-2', 'Checked · 2 items', S2.slice(0, -1)),
-  P('processed-3', 'Checked · 3 items (Chao Tuoi Counting)', S3.slice(0, -1)),
-  P('processed-oos', 'Checked · Chao Tuoi 2 out of stock (recount)', [...RC1, ...oos('chao2')]),
+  P('processed-1', 'Checked · 1 item (Sita)', [...S1.slice(0, -1), done]),
+  P('processed-2', 'Checked · 2 items', [...S2.slice(0, -1), done]),
+  P('processed-3', 'Checked · 3 items (Chao Tuoi Counting)', [...S3.slice(0, -1), done]),
+  P('processed-oos', 'Checked · Chao Tuoi 2 out of stock (recount)', [...RC1, ...oos('chao2'), done]),
   P('processed-recount', 'Checked · all, after a real recount', [...RC1, ...fill('chao2', '6', '4', '2'), ...fill('chao1', '5', '4', '3')]),
   P('all-done', 'Checked · all, Complete enabled', ALL),
   P('alert-complete', 'Complete failed · connection', [...ALL, { type: 'alert', text: ALERTS.error }]),

@@ -1,6 +1,6 @@
 import type { Dispatch } from 'react';
 import { COUNT_TICKETS, REMOVAL_TICKETS } from '../data';
-import type { Ticket } from '../data';
+import type { ProductId, Ticket } from '../data';
 import type { Action, AuditsTab } from '../state';
 import { icons } from '../components/icons';
 import { cx } from '../components/ui';
@@ -15,7 +15,7 @@ function TicketCard({ t, onOpen, showTag, showProducts }: { t: Ticket; onOpen?: 
         <span className="ticket__date">{t.date}</span>
       </div>
       <div className="ticket__second">
-        {showTag && t.tag && <span className="ptag ptag--text">{t.tag === 'Expiry Level' ? tr('expiryLevel') : tr('locationLevel')}</span>}
+        {showTag && t.tag && <span className="ptag ptag--text">{t.tag === 'Expiry Checks' ? tr('expiryLevel') : tr('locationLevel')}</span>}
         {showProducts && t.products != null && <span className="ticket__products">{tr('products', { n: t.products })}</span>}
       </div>
     </>
@@ -29,11 +29,11 @@ function TicketCard({ t, onOpen, showTag, showProducts }: { t: Ticket; onOpen?: 
   );
 }
 
-export function Audits({ tab, created, dispatch }: { tab: AuditsTab; created: { id: string; date: string }[]; dispatch: Dispatch<Action> }) {
+export function Audits({ tab, created, dispatch }: { tab: AuditsTab; created: { id: string; date: string; products: ProductId[] }[]; dispatch: Dispatch<Action> }) {
   const { t } = useI18n();
   const count = tab === 'count';
   const base = count ? COUNT_TICKETS : REMOVAL_TICKETS;
-  const data = count ? { ...base, todo: [...created.map((c): Ticket => ({ id: c.id, date: c.date, tag: 'Expiry Level' })), ...base.todo] } : base;
+  const data = count ? { ...base, todo: [...created.map((c): Ticket => ({ id: c.id, date: c.date, tag: 'Expiry Checks' })), ...base.todo] } : base;
   return (
     <div className="screen screen-enter pl">
       <div className="audits">
@@ -73,11 +73,11 @@ export function Audits({ tab, created, dispatch }: { tab: AuditsTab; created: { 
         <div className="audits__scroll">
           <p className="audits__section">{t('inProgress')}</p>
           {data.inProgress.map((t) => (
-            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Level' ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
+            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Checks' ? () => dispatch({ type: 'openTicket', id: t.id, scope: created.find((c) => c.id === t.id)?.products }) : undefined} />
           ))}
           <p className="audits__section">{t('toDo')}</p>
           {data.todo.map((t) => (
-            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Level' ? () => dispatch({ type: 'openTicket', id: t.id }) : undefined} />
+            <TicketCard key={t.id} t={t} showTag={count} showProducts={!count} onOpen={count && t.tag === 'Expiry Checks' ? () => dispatch({ type: 'openTicket', id: t.id, scope: created.find((c) => c.id === t.id)?.products }) : undefined} />
           ))}
         </div>
 

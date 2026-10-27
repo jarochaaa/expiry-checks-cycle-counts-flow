@@ -128,37 +128,90 @@ img {
   width: 100%;
 }
 .board__web,
-.side {
+.side,
+.board__title {
   display: none;
 }
+.board__row {
+  display: contents;
+}
 @media (min-width: 1100px) {
+  :root {
+    --title-h: 76px;
+  }
   .stage {
     display: block;
     height: 100dvh;
   }
   .board {
     justify-content: safe center;
-    align-items: safe center;
+    align-items: safe flex-start;
     gap: 64px;
     height: 100%;
     overflow: auto;
     width: calc(100% - 288px);
     margin-left: 288px;
-    padding: 12px 48px;
+    padding: 24px 48px;
     scroll-snap-type: x proximity;
     scroll-padding-left: 48px;
   }
-  .board__app {
-    width: auto;
-    flex: none;
-    align-items: center;
-    gap: 24px;
-    scroll-snap-align: start;
-  }
+  .board__app,
   .board__web {
     flex: none;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: auto;
     scroll-snap-align: start;
+  }
+  .board__row {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .app {
+    height: min(917px, calc(100dvh - 48px - var(--title-h) - 16px));
+  }
+  /* Title card above each product: what it is, in one glance */
+  .board__title {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    height: var(--title-h);
+    padding: 0 24px;
+    border-radius: 16px;
+    background: var(--surface-app);
+    border: 1px solid var(--border-card);
+    color: var(--text-primary);
+  }
+  .board__title h2 {
+    font: 700 20px/1.2 var(--font-sans);
+    letter-spacing: -0.2px;
+  }
+  .board__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .board__tag {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border-card);
+    color: #cfcfd2;
+    font: 500 11px/1 var(--font-sans);
+  }
+  .board__tag--view {
+    border-color: var(--accent-cyan);
+    color: var(--text-muted);
+  }
+  .board__tag--view b {
+    margin-left: 4px;
+    color: var(--accent-cyan);
+    font-weight: 700;
   }
   .side {
     display: flex;

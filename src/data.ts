@@ -96,7 +96,7 @@ export interface Ticket {
   products?: number;
 }
 export const COUNT_TICKETS: { inProgress: Ticket[]; todo: Ticket[] } = {
-  inProgress: [{ id: '67890', date: '25/09/2024 – 13:07', tag: 'Location level' }],
+  inProgress: [{ id: '67890', date: '25/09/2024 – 13:07', tag: 'Count Checks' }],
   todo: [
     { id: '67892', date: '25/09/2024 – 13:07' },
   ],

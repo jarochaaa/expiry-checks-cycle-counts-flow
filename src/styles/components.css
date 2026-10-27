@@ -1044,6 +1044,38 @@ button.thumb {
     font: 400 12px/1.25 var(--font-sans);
     color: #cfcfd2;
   }
+  .proto-nav__group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    font: 700 13px/1.2 var(--font-sans);
+    color: var(--text-primary);
+  }
+  .proto-nav__group em {
+    margin-left: auto;
+    font: 600 10px/1 var(--font-sans);
+    font-style: normal;
+    color: var(--text-muted);
+  }
+  .proto-nav__chev {
+    width: 7px;
+    height: 7px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 160ms ease;
+  }
+  .proto-nav__group[aria-expanded='true'] .proto-nav__chev {
+    transform: rotate(45deg);
+  }
+  .proto-nav button.is-on {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
   .proto-nav__code {
     display: inline-block;
     min-width: 28px;
@@ -1592,6 +1624,25 @@ button.ticket {
   align-items: center;
   gap: 8px;
   animation: sheet-in 220ms ease-out;
+}
+.qsheet__slide {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.qsheet__slide--next {
+  animation: qty-next 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.app__view[dir='rtl'] .qsheet__slide--next {
+  animation-name: qty-next-rtl;
+}
+@keyframes qty-next {
+  from { opacity: 0; transform: translateX(36px); }
+}
+@keyframes qty-next-rtl {
+  from { opacity: 0; transform: translateX(-36px); }
 }
 .qsheet__label {
   padding-top: 8px;

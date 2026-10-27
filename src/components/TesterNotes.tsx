@@ -33,8 +33,8 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     lines.push(`Typed so far: ${batchTotal(s.pdp.batches)}. “Add batches” adds an expiry date that is not listed.`);
     if (s.recount[loc.product]) lines.unshift('RECOUNT: all locations of this product start again from 0.');
   } else if (s.screen === 'audits') {
-    title = 'Audits';
-    lines.push('Only Expiry Level tasks open. They appear here once you create them in Inventory Management (Create Count Task → Expiry Based → Expiry level checks → Create).');
+    title = 'Cycle Counts';
+    lines.push('Only Expiry Checks tasks open. They appear here once you create them in Inventory Management (Create Count Task → Expiry Checks → Expiry Checks → Create).');
     lines.push('Removal Tasks is a view only.');
   } else if (s.screen === 'skus') {
     title = 'Product list';
@@ -45,8 +45,8 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     if (allDone(s)) lines.push('Everything is checked: Complete is enabled.');
   } else if (s.screen === 'language') {
     title = 'Language';
-    lines.push('Opened from the ? icon on Audits (A1). English is the default; Spanish and Arabic (RTL) are available.');
-    lines.push('Picking one applies it and returns to Audits. The EN / ES / AR buttons in the left panel switch it anywhere.');
+    lines.push('Opened from the ? icon on Cycle Counts (A1). English is the default; Spanish and Arabic (RTL) are available.');
+    lines.push('Picking one applies it and returns to Cycle Counts. The EN / ES / AR buttons in the left panel switch it anywhere.');
     lines.push('The orange task banner and this box stay in English.');
   } else if (s.screen === 'summary') {
     title = 'Summary';
