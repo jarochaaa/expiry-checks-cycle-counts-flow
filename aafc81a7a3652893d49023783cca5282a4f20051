@@ -1,0 +1,29 @@
+src/styles/base.css
+  s_1bf2109d03fa68::t_10c092a2684544 83-87
+  s_1bf2109d03fa68::t_9a9f85006da65b 237-238
+src/tasks.ts
+  s_1bf2109d03fa68::t_10c092a2684544 14-18
+  s_1bf2109d03fa68::t_86756763e2019b 13
+src/App.tsx
+  s_1bf2109d03fa68::t_10c092a2684544 19,205-206
+src/styles/components.css
+  s_1bf2109d03fa68::t_9a9f85006da65b 2125-2134
+src/web/web.css
+  s_1bf2109d03fa68::t_8308fe0e248b62 1083,1086
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "aafc81a7a3652893d49023783cca5282a4f20051",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "unknown"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
