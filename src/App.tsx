@@ -9,6 +9,8 @@ import { SkuList } from './screens/SkuList';
 import { Summary } from './screens/Summary';
 import { Audits } from './screens/Audits';
 import { Language } from './screens/Language';
+import { InventoryManagement } from './web/InventoryManagement';
+import './web/web.css';
 import { I18nProvider, LANGS, makeI18n } from './i18n';
 import { PdpScreen } from './screens/Pdp';
 import { PRESETS, codeFor, initialState, reducer } from './state';
@@ -51,21 +53,8 @@ export default function App() {
         ))}
       </nav>
 
-      <TesterNotes s={s} code={codeFor(s)} />
-
-      <div className="lang-switch" role="group" aria-label="App language">
-        <span>App language</span>
-        {LANGS.map((l) => (
-          <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
-            {l.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="view-tag" aria-hidden>
-        View <b>{codeFor(s) ?? '·'}</b>
-      </div>
-
+      <div className="board">
+        <section className="board__app" aria-label="App">
       <div className="app">
         <TaskBanner task={taskFor(s)} code={codeFor(s)} />
 
@@ -91,6 +80,28 @@ export default function App() {
             </Toast>
           )}
         </div>
+      </div>
+          <div className="side">
+      <TesterNotes s={s} code={codeFor(s)} />
+
+            <div className="lang-switch" role="group" aria-label="App language">
+              <span>App language</span>
+              {LANGS.map((l) => (
+                <button key={l.id} type="button" aria-pressed={s.lang === l.id} onClick={() => dispatch({ type: 'setLang', lang: l.id })}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="view-tag" aria-hidden>
+              View <b>{codeFor(s) ?? '·'}</b>
+            </div>
+
+          </div>
+        </section>
+        <section className="board__web" aria-label="Inventory Management">
+          <InventoryManagement />
+        </section>
       </div>
     </div>
     </I18nProvider>

@@ -115,3 +115,55 @@ img {
     animation: none;
   }
 }
+
+/* ---------- Board: app + website side by side, scrolls horizontally on desktop ---------- */
+.board {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.board__app {
+  display: flex;
+  justify-content: center;
+}
+.board__web,
+.side {
+  display: none;
+}
+@media (min-width: 1100px) {
+  .stage {
+    display: block;
+    height: 100dvh;
+  }
+  .board {
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 64px;
+    height: 100%;
+    overflow: auto;
+    width: calc(100% - 288px);
+    margin-left: 288px;
+    padding: 24px 48px;
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 24px;
+  }
+  .board__app {
+    flex: none;
+    align-items: flex-start;
+    gap: 24px;
+    scroll-snap-align: start;
+  }
+  .board__web {
+    flex: none;
+    display: block;
+    scroll-snap-align: start;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 280px;
+    position: sticky;
+    top: 0;
+  }
+}
