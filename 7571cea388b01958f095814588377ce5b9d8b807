@@ -1,0 +1,34 @@
+src/components/TesterNotes.tsx
+  s_1bf2109d03fa68::t_e8d7c1eccfe81b 22-23
+src/App.tsx
+  s_1bf2109d03fa68::t_6577d663997ee8 82,90,97-101,105
+  s_1bf2109d03fa68::t_275ea2d7d5a1f4 33-35,66-81
+src/data.ts
+  s_1bf2109d03fa68::t_e8d7c1eccfe81b 62,71
+src/web/TaskDetail.tsx
+  s_1bf2109d03fa68::t_dda625ff8ff36a 7,11,14-20,24,27-28,31-62,65-77,80-103,105-108,110-134,136-153,155-157,159-166,168-202,210-344
+  s_1bf2109d03fa68::t_cb784263edd5de 345-347
+src/state.ts
+  s_1bf2109d03fa68::t_e8d7c1eccfe81b 407,430
+  s_1bf2109d03fa68::t_dda625ff8ff36a 56-57,92,202
+src/web/web.css
+  s_1bf2109d03fa68::t_d4b041e296b861 1071,1085-1150
+src/web/InventoryManagement.tsx
+  s_1bf2109d03fa68::t_6577d663997ee8 4,57,69-70,73,82,84,86-89,160,162-165,171,173,175-189,192-208,212-231,277-288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "7571cea388b01958f095814588377ce5b9d8b807",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
