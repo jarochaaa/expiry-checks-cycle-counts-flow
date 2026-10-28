@@ -157,7 +157,6 @@ export function CreateTask({ onClose, onCreate, initial, onView }: { onClose: ()
   }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const canNext = tab === 'counting' ? pick === 'expiry' && gran === 'expiry' : removal;
-  const showGran = tab === 'counting' && (pick === 'random' || pick === 'hybrid' || pick === 'manual' || pick === 'expiry');
 
   const setRangeAndDates = (r: typeof range) => {
     setRange(r);
@@ -232,39 +231,39 @@ export function CreateTask({ onClose, onCreate, initial, onView }: { onClose: ()
               {tab === 'counting' ? (
                 <>
                   <div className="ct__card">
-                    <p>Creation Batches</p>
-                    <div className="ct__tiles">
-                      <Tile id="random" icon={I.shuffle} label="Random Sample" on={pick === 'random'} onClick={() => setPick('random')} />
-                      <Tile id="hybrid" icon={I.hybrid} label="Hybrid Sample" on={pick === 'hybrid'} onClick={() => setPick('hybrid')} />
-                      <Tile id="manual" icon={I.upload} label={<>Manual (Upload<br />CSV)</>} on={pick === 'manual'} onClick={() => setPick('manual')} />
-                      <Tile id="expiry" icon={I.expiry} label="Expiry Checks" on={pick === 'expiry'} onClick={() => setPick('expiry')} />
-                    </div>
-                    {pick === 'manual' && (
-                      <div className="ct__upload">
-                        <div className="ct__upload-head">
-                          <span>Upload CSV file</span>
-                          <button type="button" className="ct__dl">
-                            Download {I.dl}
-                          </button>
-                        </div>
-                        <div className="ct__drop">
-                          {I.csv}
-                          <b>Drop files or</b>
-                          <button type="button" className="ct__click">
-                            Click Here
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {showGran && (
-                    <div className="ct__card">
                       <p>Choose the granularity of the counting task</p>
                       <div className="ct__tiles ct__tiles--2">
                         <Tile id="location" icon={I.pin} label={<b>Count Checks</b>} sub="Count units for each location" on={gran === 'location'} onClick={() => setGran('location')} />
                         <Tile id="gexpiry" icon={I.expiry} label={<b>Expiry Checks</b>} sub="Count units for each expiry" on={gran === 'expiry'} onClick={() => setGran('expiry')} />
                       </div>
+                    </div>
+
+                  {gran && (
+                    <div className="ct__card">
+                      <p>Creation Batches</p>
+                      <div className="ct__tiles">
+                        <Tile id="random" icon={I.shuffle} label="Random Sample" on={pick === 'random'} onClick={() => setPick('random')} />
+                        <Tile id="hybrid" icon={I.hybrid} label="Hybrid Sample" on={pick === 'hybrid'} onClick={() => setPick('hybrid')} />
+                        <Tile id="manual" icon={I.upload} label={<>Manual (Upload<br />CSV)</>} on={pick === 'manual'} onClick={() => setPick('manual')} />
+                        <Tile id="expiry" icon={I.expiry} label="Expiry Sample" on={pick === 'expiry'} onClick={() => setPick('expiry')} />
+                      </div>
+                      {pick === 'manual' && (
+                        <div className="ct__upload">
+                          <div className="ct__upload-head">
+                            <span>Upload CSV file</span>
+                            <button type="button" className="ct__dl">
+                              Download {I.dl}
+                            </button>
+                          </div>
+                          <div className="ct__drop">
+                            {I.csv}
+                            <b>Drop files or</b>
+                            <button type="button" className="ct__click">
+                              Click Here
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
