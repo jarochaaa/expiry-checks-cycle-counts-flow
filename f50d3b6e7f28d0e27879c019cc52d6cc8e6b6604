@@ -1,0 +1,21 @@
+src/data.ts
+  s_1bf2109d03fa68::t_7b4c151e259bc9 98-101,104
+src/components/TesterNotes.tsx
+  s_1bf2109d03fa68::t_7b4c151e259bc9 61-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "f50d3b6e7f28d0e27879c019cc52d6cc8e6b6604",
+  "prompts": {},
+  "sessions": {
+    "s_1bf2109d03fa68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5a9e0db0-cf9e-4bc4-adb2-c27988ec01f1",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
