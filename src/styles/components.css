@@ -208,6 +208,9 @@
 .swipe--open .swipe__oos {
   visibility: visible;
 }
+.swipe__oos--delete {
+  background: #871c07; /* Figma "Slide" (delete) */
+}
 .swipe__oos img {
   width: 24px;
   height: 24px;

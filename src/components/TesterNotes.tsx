@@ -8,7 +8,7 @@ const sum = (n: number[]) => n.reduce((a, b) => a + b, 0);
 const EDGE_CASES: { title: string; steps: string[] }[] = [
   {
     title: 'Force an extra batch (expiry date not listed)',
-    steps: ['Open any product (tap the scan icon).', 'Tap “Add batches”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.'],
+    steps: ['Open any product (tap the scan icon).', 'Tap “Add batches”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.', 'To remove an added batch, slide its card to the left and tap the dark red area (only added batches can be deleted).'],
   },
   {
     title: 'Force a recount (Stock Discrepancy)',

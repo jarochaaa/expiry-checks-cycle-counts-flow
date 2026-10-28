@@ -119,6 +119,7 @@ export type Action =
   | { type: 'qtyType'; value: string }
   | { type: 'qtyDone' }
   | { type: 'openCalendar' }
+  | { type: 'deleteBatch'; date: string }
   | { type: 'calSelect'; y: number; m: number; d: number }
   | { type: 'calMonth'; delta: number }
   | { type: 'calApply' }
@@ -270,6 +271,11 @@ export function reducer(s: State, a: Action): State {
         if (next) sheet = { kind: 'qty', date: next.date, isNew: false, value: '' };
       }
       return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet } };
+    }
+    case 'deleteBatch': {
+      // only batches the picker added can be removed (the system's own expiry dates stay)
+      if (!s.pdp || LOC_BY_ID[s.pdp.loc].dates.includes(a.date)) return s;
+      return { ...s, pdp: { ...s.pdp, batches: s.pdp.batches.filter((b) => b.date !== a.date) } };
     }
     case 'openCalendar':
       return withSheet(s, { kind: 'calendar', viewY: 2026, viewM: 7, y: 2026, m: 7, d: 17 });
