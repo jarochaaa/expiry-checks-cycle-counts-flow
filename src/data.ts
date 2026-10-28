@@ -95,10 +95,13 @@ export interface Ticket {
   tag?: string;
   products?: number;
 }
-/** Count tasks only exist once Inventory Management sends them: Cycle Counts starts with nothing In progress / To do. */
+/**
+ * Cycle Counts starts with one built-in test task (67891, all 3 products) so Pelican can be tried on its own.
+ * Tasks sent from Inventory Management are listed above it.
+ */
 export const COUNT_TICKETS: { inProgress: Ticket[]; todo: Ticket[] } = {
   inProgress: [],
-  todo: [],
+  todo: [{ id: '67891', date: '25/09/2024 – 13:07', tag: 'Expiry Checks' }],
 };
 export const REMOVAL_TICKETS: { inProgress: Ticket[]; todo: Ticket[] } = {
   inProgress: [{ id: '67890', date: '25/09/2024 – 13:07', products: 20 }],

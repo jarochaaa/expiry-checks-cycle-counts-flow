@@ -58,8 +58,8 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
     if (s.recount[loc.product]) lines.unshift('RECOUNT: all locations of this product start again from 0.');
   } else if (s.screen === 'audits') {
     title = 'Cycle Counts';
-    lines.push('In progress and To do are empty on purpose: tasks only appear here after you send them from Inventory Management (IM): Create Count Task → Expiry Checks (type) → Expiry Sample (strategy) → Create.');
-    lines.push('Each task lands first in To do with the same ID as in IM and contains only its own SKUs.');
+    lines.push('Task 67891 is a built-in test task (all 3 products) so you can try Pelican without Inventory Management (IM).');
+    lines.push('Tasks sent from IM (Create Count Task → Expiry Checks → Expiry Sample → Create) land above it in To do, with the same ID as in IM and only their own SKUs.');
     lines.push('Removal Tasks is a view only.');
   } else if (s.screen === 'skus') {
     title = 'Product list';
