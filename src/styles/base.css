@@ -220,6 +220,16 @@ img {
     color: #cfcfd2;
     font: 500 11px/1 var(--font-sans);
   }
+  .board__tag--user {
+    border-color: #b59ddc;
+    background: rgba(181, 157, 220, 0.14);
+    color: #d9ccf0;
+  }
+  .board__tag--user b {
+    margin-left: 4px;
+    color: #fff;
+    font-weight: 700;
+  }
   .board__tag--view {
     border-color: var(--accent-cyan);
     color: var(--text-muted);

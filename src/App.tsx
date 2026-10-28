@@ -211,6 +211,9 @@ export default function App() {
               <span className="board__tag">Web</span>
               <span className="board__tag">Back-office</span>
               <span className="board__tag">Desktop</span>
+              <span className="board__tag board__tag--user">
+                User: <b>Store Manager, Inventory Controllers</b>
+              </span>
               <span className="board__tag board__tag--view">
                 View <b>{webCode}</b>
               </span>
@@ -223,7 +226,9 @@ export default function App() {
             <h2>Pelican</h2>
             <div className="board__tags">
               <span className="board__tag">Mobile app</span>
-              <span className="board__tag">Picker</span>
+              <span className="board__tag board__tag--user">
+                User: <b>Pickers</b>
+              </span>
               <span className="board__tag">Cycle Counts</span>
             </div>
           </header>
