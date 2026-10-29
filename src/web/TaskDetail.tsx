@@ -64,7 +64,7 @@ const dot = (ok: boolean) =>
 
 const ymd = (dmy: string) => dmy.split('/').reverse().join('.');
 
-export function TaskDetail({ task, res, adjusted, status, date, time, onClose, onReview }: { task: CreatedTask; res?: TaskResult; adjusted: boolean; status: ReactNodeLike; date: string; time: string; onClose: () => void; onReview: () => void }) {
+export function TaskDetail({ task, res, adjusted, status, date, time, onClose, onAdjust, onRecount }: { task: CreatedTask; res?: TaskResult; adjusted: boolean; status: ReactNodeLike; date: string; time: string; onClose: () => void; onAdjust: () => void; onRecount: () => void }) {
   const tot = taskTotals(task, res, adjusted);
   const disc = discrepantProducts(task, res);
   const picker = res ? 'Pelican user' : 'Unassigned';
@@ -93,11 +93,11 @@ export function TaskDetail({ task, res, adjusted, status, date, time, onClose, o
         <span className="tdv__status">{status}</span>
         <span className="tdv__actions">
           Actions:
-          <button type="button" aria-label="Edit" className="tdv__icon">
+          <button type="button" aria-label="Adjust discrepancies" className="tdv__icon" disabled={!res || disc.length === 0 || adjusted} onClick={onAdjust}>
             {I.pencil}
           </button>
           {res && disc.length > 0 && !adjusted && (
-            <button type="button" className="tdv__disc" aria-label="Review discrepancies" onClick={onReview}>
+            <button type="button" className="tdv__disc" aria-label="Recount list" onClick={onRecount}>
               {ring}
             </button>
           )}
@@ -213,7 +213,7 @@ type ReactNodeLike = React.ReactNode;
 export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTask; res: TaskResult; onClose: () => void; onAdjust: () => void }) {
   const prods = discrepantProducts(task, res);
   const lines = (p: ProductId) =>
-    LOC_GROUPS(p).flatMap((g) => g.rows.map((r) => ({ key: g.id + r.date, loc: g.code, date: r.date, stock: r.stock, counted: res.counted[g.id]?.[r.date] ?? 0 })));
+    LOC_GROUPS(p).flatMap((g) => g.rows.map((r, i) => ({ key: g.id + r.date, loc: g.code, firstOfLoc: i === 0, lastOfLoc: i === g.rows.length - 1, date: r.date, stock: r.stock, counted: res.counted[g.id]?.[r.date] ?? 0 })));
   const [adj, setAdj] = useState<Record<string, number>>(() => Object.fromEntries(prods.flatMap((p) => lines(p).map((l) => [l.key, l.counted - l.stock]))));
   const tot = taskTotals(task, res, false);
   const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
@@ -289,7 +289,7 @@ export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTas
                     {ls.map((l, i) => {
                       const d = l.counted - l.stock;
                       return (
-                        <div key={l.key} className="am__row">
+                        <div key={l.key} className={`am__row${l.lastOfLoc ? ' am__row--lastloc' : ''}`}>
                           <span className="am__sku">
                             {i === 0 && (
                               <>
@@ -301,7 +301,7 @@ export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTas
                               </>
                             )}
                           </span>
-                          <span>{l.loc}</span>
+                          <span className="am__loc">{l.firstOfLoc ? l.loc : ''}</span>
                           <span>{ymd(l.date)}</span>
                           <span>{l.stock}</span>
                           <span>{l.counted}</span>
@@ -339,6 +339,95 @@ export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTas
         <div className="am__foot">
           <button type="button" className="am__go" onClick={onAdjust}>
             Adjust
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** "Recount list": the products that still show a discrepancy, grouped by location, to send back for a recount. */
+export function RecountModal({ task, res, onClose, onRequest }: { task: CreatedTask; res: TaskResult; onClose: () => void; onRequest: (n: number) => void }) {
+  const prods = discrepantProducts(task, res);
+  const tot = taskTotals(task, res, false);
+  const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
+  return (
+    <div className="im-modal-wrap" onClick={onClose}>
+      <div className="am" role="dialog" aria-label="Recount List" onClick={(e) => e.stopPropagation()}>
+        <header className="am__head">
+          <h2>Recount List</h2>
+          <button type="button" className="am__close" aria-label="Close" onClick={onClose}>
+            {I.close}
+          </button>
+        </header>
+        <div className="am__body">
+          <div className="am__top">
+            <h3>Products to recount</h3>
+            <div className="tdv__kpis">
+              <div className="tdv-kpi">
+                <span>{I.sku}Total SKUs</span>
+                <b>{tot.skus}</b>
+              </div>
+              <div className="tdv-kpi">
+                <span>{I.disc}To recount</span>
+                <b>{prods.length}</b>
+              </div>
+            </div>
+          </div>
+          <div className="am__table">
+            <div className="am__row am__row--head am__row--recount">
+              <span>PRODUCT &amp; SKU</span>
+              <span>LOCATIONS</span>
+              <span>
+                EXPIRY DATES<em>(PER LOCATION)</em>
+              </span>
+              <span>
+                STOCK ON HAND<em>(PER EXPIRY DATE)</em>
+              </span>
+              <span>
+                UNITS COUNTED<em>(PER LOCATION)</em>
+              </span>
+              <span>
+                DISCREPANT UNITS<em>(PER LOCATION)</em>
+              </span>
+            </div>
+            {prods.map((p) => (
+              <div key={p} className="am__block">
+                <div className="am__lines">
+                  {LOC_GROUPS(p).flatMap((g) =>
+                    g.rows.map((r, i) => {
+                      const c = res.counted[g.id]?.[r.date] ?? 0;
+                      const d = c - r.stock;
+                      return (
+                        <div key={g.id + r.date} className={`am__row am__row--recount${i === g.rows.length - 1 ? ' am__row--lastloc' : ''}`}>
+                          <span className="am__sku">
+                            {g.id === LOC_GROUPS(p)[0].id && i === 0 && (
+                              <>
+                                <img src={PRODUCTS[p].image} alt="" />
+                                <span>
+                                  <b>{PRODUCTS[p].name}</b>
+                                  <small>SKU: {PRODUCTS[p].sku}</small>
+                                </span>
+                              </>
+                            )}
+                          </span>
+                          <span className="am__loc">{i === 0 ? g.code : ''}</span>
+                          <span>{ymd(r.date)}</span>
+                          <span>{r.stock}</span>
+                          <span>{c}</span>
+                          <span className={d < 0 ? 'am-neg' : d > 0 ? 'am-pos' : undefined}>{d === 0 ? 0 : sign(d)}</span>
+                        </div>
+                      );
+                    }),
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="am__foot">
+          <button type="button" className="am__go" onClick={() => onRequest(prods.length)}>
+            Request recount
           </button>
         </div>
       </div>

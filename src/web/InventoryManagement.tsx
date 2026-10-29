@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import carrot from '../assets/web/carrot.svg';
 import { CreateTask } from './CreateTask';
-import { AdjustModal, TaskDetail, taskTotals } from './TaskDetail';
+import { AdjustModal, RecountModal, TaskDetail, taskTotals } from './TaskDetail';
 import type { TaskResult } from './TaskDetail';
 import type { CreateInitial, CreatedTask } from './CreateTask';
 
@@ -54,7 +54,7 @@ export type { TaskResult };
 
 /** Jump requested from the left navigator: which view of the website to show. */
 export interface WebCommand {
-  id: 'IM1' | 'IM2' | 'IM3' | 'IM4' | 'IM5' | 'IM6' | 'IM7' | 'IM8' | 'IM9' | 'IM10' | 'IM11';
+  id: 'IM1' | 'IM2' | 'IM3' | 'IM4' | 'IM5' | 'IM6' | 'IM7' | 'IM8' | 'IM9' | 'IM10' | 'IM11' | 'IM12';
   n: number;
 }
 
@@ -67,10 +67,12 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
   const [initial, setInitial] = useState<CreateInitial | undefined>(undefined);
   const [popupCode, setPopupCode] = useState('IM3');
   const [reviewing, setReviewing] = useState<string | null>(null); // task whose "Manual Adjust Batch" is open
+  const [recounting, setRecounting] = useState<string | null>(null); // task whose "Recount List" is open
+  const [note, setNote] = useState<string | null>(null);
   const [adjusted, setAdjusted] = useState<Record<string, boolean>>({});
 
   // View codes: every state of the website has one (IM1…IM9), shown in the title and used by the navigator
-  const code = creating ? popupCode : reviewing ? 'IM10' : tab === 'regular' ? 'IM1' : tab === 'wall' ? 'IM2' : openTask ? (adjusted[openTask] ? 'IM11' : results[openTask] ? 'IM9' : 'IM8') : 'IM7';
+  const code = creating ? popupCode : reviewing ? 'IM10' : recounting ? 'IM12' : tab === 'regular' ? 'IM1' : tab === 'wall' ? 'IM2' : openTask ? (adjusted[openTask] ? 'IM11' : results[openTask] ? 'IM9' : 'IM8') : 'IM7';
   useEffect(() => {
     onCode(code);
   }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -79,13 +81,15 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
     if (!command) return;
     const c = command.id;
     setSent(null);
-    if (c === 'IM1' || c === 'IM2' || c === 'IM7' || c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11') {
+    if (c === 'IM1' || c === 'IM2' || c === 'IM7' || c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11' || c === 'IM12') {
       setCreating(false);
       setReviewing(null);
+      setRecounting(null);
       setTab(c === 'IM1' ? 'regular' : c === 'IM2' ? 'wall' : 'expiry');
       const first = created[0]?.id ?? null;
-      setOpenTask(c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11' ? first : null);
+      setOpenTask(c === 'IM8' || c === 'IM9' || c === 'IM10' || c === 'IM11' || c === 'IM12' ? first : null);
       if (c === 'IM10' && first) setReviewing(first);
+      if (c === 'IM12' && first) setRecounting(first);
       if (first) setAdjusted((a) => ({ ...a, [first]: c === 'IM11' }));
     } else {
       setInitial(c === 'IM3' ? undefined : c === 'IM4' ? { step: 1, pick: true } : c === 'IM5' ? { step: 2 } : { step: 2, batches: 3, expand: true });
@@ -190,7 +194,7 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
                 return (
                   <div key={t.id} className={isOpen ? 'im__task im__task--open' : 'im__task'}>
                     {isOpen ? (
-                      <TaskDetail task={t} res={res} adjusted={adj} status={status} date={d.replace(/\//g, '.')} time={tm} onClose={() => setOpenTask(null)} onReview={() => setReviewing(t.id)} />
+                      <TaskDetail task={t} res={res} adjusted={adj} status={status} date={d.replace(/\//g, '.')} time={tm} onClose={() => setOpenTask(null)} onAdjust={() => setReviewing(t.id)} onRecount={() => setRecounting(t.id)} />
                     ) : (
                       <div className="im__row im__row--exp">
                         <span>{t.id}</span>
@@ -286,6 +290,19 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
           }}
         />
       )}
+      {recounting && results[recounting] && (
+        <RecountModal
+          key={'rc' + recounting}
+          task={created.find((t) => t.id === recounting)!}
+          res={results[recounting]}
+          onClose={() => setRecounting(null)}
+          onRequest={(n) => {
+            setRecounting(null);
+            setNote(`Recount requested for ${n} product${n === 1 ? '' : 's'}`);
+            setTimeout(() => setNote(null), 4000);
+          }}
+        />
+      )}
       {creating && (
         <CreateTask
           key={command?.n ?? 0}
@@ -300,6 +317,11 @@ export function InventoryManagement({ created, results, command, onCode, onCreat
             setTimeout(() => setSent(null), 4000);
           }}
         />
+      )}
+      {note && (
+        <div className="im-toast" role="status">
+          {note}
+        </div>
       )}
       {sent != null && (
         <div className="im-toast" role="status">

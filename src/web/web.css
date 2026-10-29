@@ -1153,3 +1153,10 @@ input:checked + .ct__box svg {
 .im__status--bad i:nth-of-type(1) { background: #ff9c00; }
 .im__status--bad i:nth-of-type(2) { background: #0d9cdd; }
 .im__status--bad i:nth-of-type(3) { background: #d61f26; }
+
+/* Manual Adjust Batch / Recount List: location shown once per group */
+.am__row--lastloc { border-bottom-color: #dcdcdc !important; }
+.am__lines .am__row:not(.am__row--lastloc) { border-bottom: 0; }
+.am__loc { font-weight: 600; }
+.am__row--recount { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; }
+.tdv__icon:disabled { opacity: 0.3; cursor: default; }

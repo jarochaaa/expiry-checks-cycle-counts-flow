@@ -31,8 +31,9 @@ const WEB_VIEWS: { id: WebCommand['id']; group: string; label: string }[] = [
   { id: 'IM7', group: 'Expiry Checks tasks', label: 'Expiry Checks list' },
   { id: 'IM8', group: 'Expiry Checks tasks', label: 'Task expanded · waiting for Pelican' },
   { id: 'IM9', group: 'Expiry Checks tasks', label: 'Task completed in Pelican · discrepancies' },
-  { id: 'IM10', group: 'Expiry Checks tasks', label: 'Manual Adjust Batch (pop up)' },
+  { id: 'IM10', group: 'Expiry Checks tasks', label: 'Manual Adjust Batch (pencil · pop up)' },
   { id: 'IM11', group: 'Expiry Checks tasks', label: 'Task after the manual adjustment' },
+  { id: 'IM12', group: 'Expiry Checks tasks', label: 'Recount List (black circle · pop up)' },
 ];
 /** Edge cases: each one starts with a titled row, followed by the states it goes through (preset ids from state.ts). */
 const USE_CASES: { title: string; hint: string; steps: string[] }[] = [
@@ -63,7 +64,7 @@ export default function App() {
       const p2 = (n: number) => String(n).padStart(2, '0');
       setCreated([{ ...SAMPLE_TASK, date: `${p2(d.getDate())}/${p2(d.getMonth() + 1)}/${d.getFullYear()} – ${p2(d.getHours())}:${p2(d.getMinutes())}` }]);
     }
-    if (['IM9', 'IM10', 'IM11'].includes(id)) {
+    if (['IM9', 'IM10', 'IM11', 'IM12'].includes(id)) {
       // these views need Pelican's counts: if the task has none yet, fake a finished run with one discrepancy
       const tk = created[0] ?? { ...SAMPLE_TASK, date: '' };
       const d = new Date();
