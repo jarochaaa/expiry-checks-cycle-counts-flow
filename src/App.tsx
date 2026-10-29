@@ -35,12 +35,20 @@ const WEB_VIEWS: { id: WebCommand['id']; group: string; label: string }[] = [
   { id: 'IM11', group: 'Expiry Checks tasks', label: 'Task after the manual adjustment' },
   { id: 'IM12', group: 'Expiry Checks tasks', label: 'Recount List (black circle · pop up)' },
 ];
+/** Inventory Management use cases: a titled (blue) row, then the views it goes through. */
+const WEB_CASES: { title: string; hint: string; ids: WebCommand['id'][] }[] = [
+  { title: 'USE CASE 1 · Browse the history', hint: 'Regular Counts and Wall to Wall', ids: ['IM1', 'IM2'] },
+  { title: 'USE CASE 2 · Create Count Tasks', hint: 'Type → strategy → batches → Create', ids: ['IM3', 'IM4', 'IM5', 'IM6'] },
+  { title: 'USE CASE 3 · Follow a task from Pelican', hint: 'Sent, waiting, completed', ids: ['IM7', 'IM8', 'IM9'] },
+  { title: 'USE CASE 4 · Adjust discrepancies', hint: 'Pencil → Manual Adjust Batch → Adjust', ids: ['IM9', 'IM10', 'IM11'] },
+  { title: 'USE CASE 5 · Recount list', hint: 'Black circle → Request recount', ids: ['IM9', 'IM12'] },
+];
 /** Edge cases: each one starts with a titled row, followed by the states it goes through (preset ids from state.ts). */
 const USE_CASES: { title: string; hint: string; steps: string[] }[] = [
-  { title: 'USE CASE 1 · Force an extra batch', hint: 'Add batches → pick a date → type units', steps: ['pdp-hint-closed', 'calendar', 'qty-new-empty', 'pdp-new-batch'] },
-  { title: 'USE CASE 2 · Force a recount', hint: 'Type a wrong total, e.g. Sita 6 + 3', steps: ['pdp-hint-closed', 'pdp-entered', 'pdp-discrepancy', 'pdp-recount', 'processed-recount'] },
-  { title: 'USE CASE 3 · Out of Stock', hint: 'Slide a card to the left', steps: ['chao2-created', 'chao2-swipe', 'chao-banner', 'chao-swipe2'] },
-  { title: 'USE CASE 4 · Errors', hint: 'Cannot be triggered by tapping', steps: ['alert-network', 'alert-wrong', 'alert-complete', 'alert-send'] },
+  { title: 'EDGE CASE 1 · Force an extra batch', hint: 'Add batches → pick a date → type units', steps: ['pdp-hint-closed', 'calendar', 'qty-new-empty', 'pdp-new-batch'] },
+  { title: 'EDGE CASE 2 · Force a recount', hint: 'Type a wrong total, e.g. Sita 6 + 3', steps: ['pdp-hint-closed', 'pdp-entered', 'pdp-discrepancy', 'pdp-recount', 'processed-recount'] },
+  { title: 'EDGE CASE 3 · Out of Stock', hint: 'Slide a card to the left', steps: ['chao2-created', 'chao2-swipe', 'chao-banner', 'chao-swipe2'] },
+  { title: 'EDGE CASE 4 · Errors', hint: 'Cannot be triggered by tapping', steps: ['alert-network', 'alert-wrong', 'alert-complete', 'alert-send'] },
 ];
 const SAMPLE_TASK: CreatedTask = { id: '67893', date: '', skus: 3, products: ['sita', 'burine', 'chao'] };
 
@@ -136,16 +144,24 @@ export default function App() {
         <button type="button" className="proto-nav__group" aria-expanded={open.im} onClick={() => setOpen({ ...open, im: !open.im })}>
           <span className="proto-nav__chev" aria-hidden />
           Inventory Management
-          <em>{WEB_VIEWS.length}</em>
+          <em>{WEB_CASES.length}</em>
         </button>
         {open.im &&
-          WEB_VIEWS.map((v, i) => (
-            <div key={v.id} style={{ display: 'contents' }}>
-              {(i === 0 || WEB_VIEWS[i - 1].group !== v.group) && <div className="proto-nav__sub">{v.group}</div>}
-              <button type="button" className={webCode === v.id ? 'is-on' : undefined} onClick={() => goWeb(v.id)}>
-                <b className="proto-nav__code">{v.id}</b>
-                {v.label}
-              </button>
+          WEB_CASES.map((u) => (
+            <div key={u.title} style={{ display: 'contents' }}>
+              <div className="proto-nav__uc">
+                {u.title}
+                <small>{u.hint}</small>
+              </div>
+              {u.ids.map((id) => {
+                const v = WEB_VIEWS.find((x) => x.id === id)!;
+                return (
+                  <button key={id} type="button" className={webCode === v.id ? 'is-on' : undefined} onClick={() => goWeb(v.id)}>
+                    <b className="proto-nav__code">{v.id}</b>
+                    {v.label}
+                  </button>
+                );
+              })}
             </div>
           ))}
 
