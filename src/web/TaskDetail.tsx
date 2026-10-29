@@ -16,8 +16,41 @@ const finalCount = (res: TaskResult, p: ProductId) => {
   const x = res.products[p];
   return x ? (x.recount ?? x.first) : 0;
 };
-/** Products whose final count still differs from what the system expects. */
-export const discrepantProducts = (t: CreatedTask, res?: TaskResult): ProductId[] => (res ? t.products.filter((p) => finalCount(res, p) !== expectedUnits(p)) : []);
+const dmyKey = (d: string) => d.split('/').reverse().join('');
+
+export interface Line {
+  key: string;
+  locId: LocId;
+  loc: string;
+  firstOfLoc: boolean;
+  lastOfLoc: boolean;
+  date: string;
+  stock: number;
+  counted: number;
+  /** expiry date the system did not know: the picker added it as a new batch in Pelican */
+  added: boolean;
+}
+/**
+ * Every location / expiry date line of a product as IM shows it after Pelican: the dates the system expects
+ * plus any batch the picker added in Pelican (stock on hand 0), latest expiry first within each location.
+ */
+export function productLines(p: ProductId, res?: TaskResult): Line[] {
+  return LOC_GROUPS(p).flatMap((g) => {
+    const counted = res?.counted[g.id] ?? {};
+    const known = new Set(g.rows.map((r) => r.date));
+    const rows = [
+      ...g.rows.map((r) => ({ date: r.date, stock: r.stock, added: false })),
+      ...Object.keys(counted)
+        .filter((d) => !known.has(d))
+        .map((d) => ({ date: d, stock: 0, added: true })),
+    ].sort((a, b) => dmyKey(b.date).localeCompare(dmyKey(a.date)));
+    return rows.map((r, i) => ({ key: g.id + r.date, locId: g.id, loc: g.code, firstOfLoc: i === 0, lastOfLoc: i === rows.length - 1, date: r.date, stock: r.stock, counted: counted[r.date] ?? 0, added: r.added }));
+  });
+}
+
+/** Products that need action in IM: the final count differs from the system, or Pelican found a batch the system does not know. */
+export const discrepantProducts = (t: CreatedTask, res?: TaskResult): ProductId[] =>
+  res ? t.products.filter((p) => finalCount(res, p) !== expectedUnits(p) || productLines(p, res).some((l) => l.added && l.counted > 0)) : [];
 
 export interface Totals {
   skus: number;
@@ -212,8 +245,7 @@ type ReactNodeLike = React.ReactNode;
 /** "Manual Adjust Batch": per location / expiry date, what was counted vs. the system, with an adjustment per line. */
 export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTask; res: TaskResult; onClose: () => void; onAdjust: () => void }) {
   const prods = discrepantProducts(task, res);
-  const lines = (p: ProductId) =>
-    LOC_GROUPS(p).flatMap((g) => g.rows.map((r, i) => ({ key: g.id + r.date, loc: g.code, firstOfLoc: i === 0, lastOfLoc: i === g.rows.length - 1, date: r.date, stock: r.stock, counted: res.counted[g.id]?.[r.date] ?? 0 })));
+  const lines = (p: ProductId) => productLines(p, res);
   const [adj, setAdj] = useState<Record<string, number>>(() => Object.fromEntries(prods.flatMap((p) => lines(p).map((l) => [l.key, l.counted - l.stock]))));
   const tot = taskTotals(task, res, false);
   const sign = (n: number) => (n > 0 ? `+${n}` : String(n));
@@ -302,7 +334,10 @@ export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTas
                             )}
                           </span>
                           <span className="am__loc">{l.firstOfLoc ? l.loc : ''}</span>
-                          <span>{ymd(l.date)}</span>
+                          <span className="am__date">
+                            {ymd(l.date)}
+                            {l.added && <i className="am__new">New batch</i>}
+                          </span>
                           <span>{l.stock}</span>
                           <span>{l.counted}</span>
                           <span className={cls(d)}>{d === 0 ? 0 : sign(d)}</span>
@@ -394,32 +429,32 @@ export function RecountModal({ task, res, onClose, onRequest }: { task: CreatedT
             {prods.map((p) => (
               <div key={p} className="am__block">
                 <div className="am__lines">
-                  {LOC_GROUPS(p).flatMap((g) =>
-                    g.rows.map((r, i) => {
-                      const c = res.counted[g.id]?.[r.date] ?? 0;
-                      const d = c - r.stock;
-                      return (
-                        <div key={g.id + r.date} className={`am__row am__row--recount${i === g.rows.length - 1 ? ' am__row--lastloc' : ''}`}>
-                          <span className="am__sku">
-                            {g.id === LOC_GROUPS(p)[0].id && i === 0 && (
-                              <>
-                                <img src={PRODUCTS[p].image} alt="" />
-                                <span>
-                                  <b>{PRODUCTS[p].name}</b>
-                                  <small>SKU: {PRODUCTS[p].sku}</small>
-                                </span>
-                              </>
-                            )}
-                          </span>
-                          <span className="am__loc">{i === 0 ? g.code : ''}</span>
-                          <span>{ymd(r.date)}</span>
-                          <span>{r.stock}</span>
-                          <span>{c}</span>
-                          <span className={d < 0 ? 'am-neg' : d > 0 ? 'am-pos' : undefined}>{d === 0 ? 0 : sign(d)}</span>
-                        </div>
-                      );
-                    }),
-                  )}
+                  {productLines(p, res).map((l, i) => {
+                    const d = l.counted - l.stock;
+                    return (
+                      <div key={l.key} className={`am__row am__row--recount${l.lastOfLoc ? ' am__row--lastloc' : ''}`}>
+                        <span className="am__sku">
+                          {i === 0 && (
+                            <>
+                              <img src={PRODUCTS[p].image} alt="" />
+                              <span>
+                                <b>{PRODUCTS[p].name}</b>
+                                <small>SKU: {PRODUCTS[p].sku}</small>
+                              </span>
+                            </>
+                          )}
+                        </span>
+                        <span className="am__loc">{l.firstOfLoc ? l.loc : ''}</span>
+                        <span className="am__date">
+                          {ymd(l.date)}
+                          {l.added && <i className="am__new">New batch</i>}
+                        </span>
+                        <span>{l.stock}</span>
+                        <span>{l.counted}</span>
+                        <span className={d < 0 ? 'am-neg' : d > 0 ? 'am-pos' : undefined}>{d === 0 ? 0 : sign(d)}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}

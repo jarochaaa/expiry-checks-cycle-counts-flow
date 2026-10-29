@@ -1160,9 +1160,10 @@ input:checked + .ct__box svg {
 .am__lines .am__row > span { align-self: stretch; display: flex; align-items: center; padding-right: 12px; border-bottom: 1px solid #e3e3e3; }
 .am__lines .am__row > span.am__center { justify-content: center; padding-right: 0; }
 .am__lines .am__row > .am__sku { border-bottom-color: transparent; }
-.am__lines .am__row:last-child > .am__sku { border-bottom-color: #e3e3e3; }
 .am__row--head, .am__row--total { column-gap: 0; }
 .am__row--head > span, .am__row--total > span { padding-right: 12px; }
 .am__loc { font-weight: 600; }
+.am__lines .am__row > span.am__date { flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; }
+.am__new { padding: 2px 8px; border-radius: 100px; background: #e4ccff; color: #3b1a6b; font: 600 10px/1.4 'Open Sans', sans-serif; font-style: normal; text-transform: uppercase; letter-spacing: 0.02em; }
 .am__row--recount { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; }
 .tdv__icon:disabled { opacity: 0.3; cursor: default; }
