@@ -1447,6 +1447,11 @@ button.ticket {
   background: var(--pl-text);
   color: var(--pl-text-inverse);
   font: 600 14px/1.5 var(--font-pelican);
+  text-align: center;
+  padding: 0 8px;
+}
+.pdp__ctas .p-btn {
+  white-space: nowrap;
 }
 .p-btn--outline {
   background: var(--pl-low);

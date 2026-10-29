@@ -45,7 +45,7 @@ const WEB_CASES: { title: string; hint: string; ids: WebCommand['id'][] }[] = [
 ];
 /** Edge cases: each one starts with a titled row, followed by the states it goes through (preset ids from state.ts). */
 const USE_CASES: { title: string; hint: string; steps: string[] }[] = [
-  { title: 'EDGE CASE 1 · Force an extra batch', hint: 'Add batches → pick a date → type units', steps: ['pdp-hint-closed', 'calendar', 'qty-new-empty', 'pdp-new-batch'] },
+  { title: 'EDGE CASE 1 · Add an expiry date not listed', hint: 'Add Expiry Date → pick a date → type units', steps: ['pdp-hint-closed', 'calendar', 'qty-new-empty', 'pdp-new-batch'] },
   { title: 'EDGE CASE 2 · Force a recount', hint: 'Type a wrong total, e.g. Sita 6 + 3', steps: ['pdp-hint-closed', 'pdp-entered', 'pdp-discrepancy', 'pdp-recount', 'processed-recount'] },
   { title: 'EDGE CASE 3 · Out of Stock', hint: 'Slide a card to the left', steps: ['chao2-created', 'chao2-swipe', 'chao-banner', 'chao-swipe2'] },
   { title: 'EDGE CASE 4 · Errors', hint: 'Cannot be triggered by tapping', steps: ['alert-network', 'alert-wrong', 'alert-complete', 'alert-send'] },

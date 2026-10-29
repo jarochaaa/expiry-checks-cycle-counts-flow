@@ -428,7 +428,7 @@ const RAW: Preset[] = [
   P('pdp-initial', 'Sita · first open (hint, 2 dates)', [...START, ...scan('sita1')]),
   P('pdp-hint-closed', 'Sita · hint closed', SITA_OPEN),
   P('pdp-entered', 'Sita · quantities entered', [...START, ...filled('sita1', '6', '4'), hint]),
-  P('pdp-new-batch', 'Sita · new batch added (3 dates)', [...SITA_OPEN, ...qty('12.12.2027', '6'), ...qty('21.11.2027', '4'), ...newBatch, { type: 'qtyType', value: '3' }, { type: 'qtyDone' }]),
+  P('pdp-new-batch', 'Sita · expiry date added (3 dates)', [...SITA_OPEN, ...qty('12.12.2027', '6'), ...qty('21.11.2027', '4'), ...newBatch, { type: 'qtyType', value: '3' }, { type: 'qtyDone' }]),
   P('pdp-recount', 'Chao Tuoi 2 · recount (Recount tag, 0 / 0 / 0)', [...RC1, ...scan('chao2'), hint]),
   P('pdp-discrepancy', 'Stock Discrepancy · on the product page', DM),
   P('pdp-single', 'Burine · 1 expiry date', [...S1, ...scan('burine'), hint]),
@@ -437,8 +437,8 @@ const RAW: Preset[] = [
 
   P('qty-empty', 'Quantity sheet · empty', [...SITA_OPEN, { type: 'openQty', date: '12.12.2027' }]),
   P('qty-entered', 'Quantity sheet · value typed', [...SITA_OPEN, { type: 'openQty', date: '12.12.2027' }, { type: 'qtyType', value: '6' }]),
-  P('qty-new-empty', 'Quantity sheet · new batch, empty', [...SITA_OPEN, ...newBatch]),
-  P('qty-new-entered', 'Quantity sheet · new batch, value typed', [...SITA_OPEN, ...newBatch, { type: 'qtyType', value: '3' }]),
+  P('qty-new-empty', 'Quantity sheet · added expiry date, empty', [...SITA_OPEN, ...newBatch]),
+  P('qty-new-entered', 'Quantity sheet · added expiry date, value typed', [...SITA_OPEN, ...newBatch, { type: 'qtyType', value: '3' }]),
 
   P('calendar', 'Which expiry date you want to capture?', [...SITA_OPEN, { type: 'openCalendar' }]),
   P('detail', 'Product image tapped', [...START, { type: 'detail', product: 'sita' }]),

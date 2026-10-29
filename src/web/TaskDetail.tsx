@@ -336,7 +336,7 @@ export function AdjustModal({ task, res, onClose, onAdjust }: { task: CreatedTas
                           <span className="am__loc">{l.firstOfLoc ? l.loc : ''}</span>
                           <span className="am__date">
                             {ymd(l.date)}
-                            {l.added && <i className="am__new">New batch</i>}
+                            {l.added && <i className="am__new">New expiry date</i>}
                           </span>
                           <span>{l.stock}</span>
                           <span>{l.counted}</span>
@@ -447,7 +447,7 @@ export function RecountModal({ task, res, onClose, onRequest }: { task: CreatedT
                         <span className="am__loc">{l.firstOfLoc ? l.loc : ''}</span>
                         <span className="am__date">
                           {ymd(l.date)}
-                          {l.added && <i className="am__new">New batch</i>}
+                          {l.added && <i className="am__new">New expiry date</i>}
                         </span>
                         <span>{l.stock}</span>
                         <span>{l.counted}</span>

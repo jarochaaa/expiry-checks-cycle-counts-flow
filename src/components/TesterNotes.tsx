@@ -7,8 +7,8 @@ const sum = (n: number[]) => n.reduce((a, b) => a + b, 0);
 /** How to recreate the edge cases on purpose (for the facilitator). */
 const EDGE_CASES: { title: string; steps: string[] }[] = [
   {
-    title: 'Force an extra batch (expiry date not listed)',
-    steps: ['Open any product (tap the scan icon).', 'Tap “Add batches”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.', 'To remove an added batch, slide its card to the left and tap the dark red area (only added batches can be deleted).'],
+    title: 'Add an expiry date that is not listed',
+    steps: ['Open any product (tap the scan icon).', 'Tap “Add Expiry Date”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.', 'To remove an added expiry date, slide its card to the left and tap the dark red area (only added expiry dates can be deleted).'],
   },
   {
     title: 'Force a recount (Stock Discrepancy)',
@@ -54,7 +54,7 @@ export function TesterNotes({ s, code }: { s: State; code: string }) {
       const others = all.filter((l) => l !== loc.id).reduce((n, l) => n + s.locs[l].count, 0);
       lines.push(`To see a Stock Discrepancy: type a total other than ${p.expected - others}, then Confirm.`);
     }
-    lines.push(`Typed so far: ${batchTotal(s.pdp.batches)}. “Add batches” adds an expiry date that is not listed.`);
+    lines.push(`Typed so far: ${batchTotal(s.pdp.batches)}. “Add Expiry Date” adds an expiry date that is not listed.`);
     if (s.recount[loc.product]) lines.unshift('RECOUNT: all locations of this product start again from 0.');
   } else if (s.screen === 'audits') {
     title = 'Cycle Counts';
