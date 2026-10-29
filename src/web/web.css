@@ -1155,8 +1155,14 @@ input:checked + .ct__box svg {
 .im__status--bad i:nth-of-type(3) { background: #d61f26; }
 
 /* Manual Adjust Batch / Recount List: location shown once per group */
-.am__row--lastloc { border-bottom-color: #dcdcdc !important; }
-.am__lines .am__row:not(.am__row--lastloc) { border-bottom: 0; }
+/* separator under every line (from LOCATIONS on); under the SKU cell only after the product's last line */
+.am__lines .am__row { border-bottom: 0 !important; column-gap: 0; }
+.am__lines .am__row > span { align-self: stretch; display: flex; align-items: center; padding-right: 12px; border-bottom: 1px solid #e3e3e3; }
+.am__lines .am__row > span.am__center { justify-content: center; padding-right: 0; }
+.am__lines .am__row > .am__sku { border-bottom-color: transparent; }
+.am__lines .am__row:last-child > .am__sku { border-bottom-color: #e3e3e3; }
+.am__row--head, .am__row--total { column-gap: 0; }
+.am__row--head > span, .am__row--total > span { padding-right: 12px; }
 .am__loc { font-weight: 600; }
 .am__row--recount { grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr; }
 .tdv__icon:disabled { opacity: 0.3; cursor: default; }
