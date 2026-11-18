@@ -5,7 +5,6 @@ import type { Pdp as PdpState } from '../state';
 import type { Action } from '../state';
 import { icons } from '../components/icons';
 import { cx } from '../components/ui';
-import { SwipeOOS } from '../components/SwipeOOS';
 import { useI18n } from '../i18n';
 
 /** Height the on-screen keyboard takes from the bottom of the visual viewport (0 where the layout already resizes). */
@@ -142,7 +141,6 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
   const loc = LOC_BY_ID[pdp.loc];
   const product = PRODUCTS[loc.product];
   const total = batchTotal(pdp.batches);
-  const [slid, setSlid] = useState<string | null>(null); // added batch whose delete area is open
 
   // After typing a quantity, bring the next empty batch card into view.
   const prev = useRef<{ kind?: string; date?: string; isNew?: boolean }>({});
@@ -198,6 +196,9 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
                 <div className="batch__title">
                   <span>{t('countAll')}</span>
                   <span className="ptag">{b.date}</span>
+                  <button type="button" className="batch__icon" aria-label={t('editDateAria', { date: b.date })} onClick={() => dispatch({ type: 'editBatchDate', date: b.date })}>
+                    <img src={icons.edit} alt="" />
+                  </button>
                 </div>
                 <div className="batch__line" />
                 <div className="batch__qty">
@@ -205,18 +206,13 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
                   <button type="button" className="qty-field" aria-label={`${t('quantity')} ${b.date}`} onClick={() => dispatch({ type: 'openQty', date: b.date })}>
                     {b.qty}
                   </button>
+                  <button type="button" className="batch__icon" aria-label={t('deleteBatchAria')} onClick={() => dispatch({ type: 'deleteBatch', date: b.date })}>
+                    <img src={icons.trash} alt="" />
+                  </button>
                 </div>
               </section>
             );
-            // Batches added by the picker (not in the system's list) slide left to be deleted
-            if (loc.dates.includes(b.date)) return <div key={b.date}>{card}</div>;
-            return (
-              <div key={b.date} data-date-wrap={b.date}>
-                <SwipeOOS kind="delete" open={slid === b.date} onOpen={() => setSlid(b.date)} onClose={() => setSlid(null)} onOOS={() => (setSlid(null), dispatch({ type: 'deleteBatch', date: b.date }))}>
-                  {card}
-                </SwipeOOS>
-              </div>
-            );
+            return <div key={b.date}>{card}</div>;
           })}
         </div>
       </div>

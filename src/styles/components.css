@@ -165,13 +165,13 @@
 .discrepancy {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 12px 8px 12px;
+  gap: 8px;
+  padding: 8px;
   margin-bottom: 8px;
   border-radius: 17px;
   background: var(--accent-yellow);
   color: var(--text-on-yellow);
-  font: 400 12px/15px var(--font-sans);
+  font: 400 13px/15px var(--font-sans);
 }
 .discrepancy img {
   flex: none;
@@ -180,6 +180,9 @@
 }
 .discrepancy strong {
   font-weight: 700;
+}
+.discrepancy strong:first-child {
+  font-size: 14px;
 }
 
 /* ---------- Location card ---------- */
@@ -1627,6 +1630,24 @@ button.ticket {
 .batch__title span:first-child {
   flex: 1;
 }
+.batch__icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.batch__icon img {
+  width: 24px;
+  height: 24px;
+}
+.batch__title {
+  gap: 16px;
+}
+.batch__title .ptag {
+  margin-inline-start: -8px;
+}
 .batch__line {
   height: 1px;
   background: var(--pl-border-high);
@@ -1642,8 +1663,9 @@ button.ticket {
   flex: 1;
 }
 .qty-field {
-  width: 161px;
-  height: 48px;
+  min-width: 78px;
+  padding: 0 12px;
+  height: 40px;
   border-radius: 200px;
   border: 1px solid var(--pl-border-high);
   display: flex;

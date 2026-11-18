@@ -33,6 +33,8 @@ import navMore from '../assets/icons2/nav-more.svg';
 import navOrders from '../assets/icons2/nav-orders.svg';
 import navReceiving from '../assets/icons2/nav-receiving.svg';
 import pencil from '../assets/icons2/pencil.svg';
+import edit from '../assets/icons2/edit.svg';
+import trash from '../assets/icons2/delete.svg';
 import pdpBack from '../assets/icons2/arrow-backward.svg';
 import startIllustration from '../assets/icons2/start-illustration.svg';
 import userCircle from '../assets/icons2/user-circle.svg';
@@ -41,7 +43,7 @@ import tick from '../assets/products/tick-ok.gif';
 
 export const icons = {
   chevronLang,
-  calCaret, calNext, calPrev, helpCircle, infoCircle, navAudits, navMore, navOrders, navReceiving, pencil, pdpBack, startIllustration, userCircle, xWhite,
+  calCaret, calNext, calPrev, helpCircle, infoCircle, navAudits, navMore, navOrders, navReceiving, pencil, edit, trash, pdpBack, startIllustration, userCircle, xWhite,
   allInbox,
   alertTriangle,
   account,

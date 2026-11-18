@@ -8,7 +8,7 @@ const sum = (n: number[]) => n.reduce((a, b) => a + b, 0);
 const EDGE_CASES: { title: string; steps: string[] }[] = [
   {
     title: 'Add an expiry date that is not listed',
-    steps: ['Open any product (tap the scan icon).', 'Tap “Add Expiry Date”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.', 'To remove an added expiry date, slide its card to the left and tap the dark red area (only added expiry dates can be deleted).'],
+    steps: ['Open any product (tap the scan icon).', 'Tap “Add Expiry Date”, pick a date that is not in the list in the calendar and Apply.', 'Type the units for that new date. The total now includes a third date.', 'To change a card’s date, tap its pencil icon, pick the new date and Apply (units are kept). To remove a card, tap its bin icon.'],
   },
   {
     title: 'Force a recount (Stock Discrepancy)',

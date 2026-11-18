@@ -20,7 +20,7 @@ export interface LocState {
 export type PdpSheet =
   | null
   | { kind: 'qty'; date: string; isNew: boolean; value: string }
-  | { kind: 'calendar'; viewY: number; viewM: number; y: number; m: number; d: number };
+  | { kind: 'calendar'; viewY: number; viewM: number; y: number; m: number; d: number; /** date of the card being edited (pencil); absent = adding a new expiry date */ edit?: string };
 
 /** Product detail page of a location: one card per expiry date. */
 export interface Pdp {
@@ -119,6 +119,7 @@ export type Action =
   | { type: 'qtyType'; value: string }
   | { type: 'qtyDone' }
   | { type: 'openCalendar' }
+  | { type: 'editBatchDate'; date: string }
   | { type: 'deleteBatch'; date: string }
   | { type: 'calSelect'; y: number; m: number; d: number }
   | { type: 'calMonth'; delta: number }
@@ -273,12 +274,17 @@ export function reducer(s: State, a: Action): State {
       return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet } };
     }
     case 'deleteBatch': {
-      // only batches the picker added can be removed (the system's own expiry dates stay)
-      if (!s.pdp || LOC_BY_ID[s.pdp.loc].dates.includes(a.date)) return s;
+      // the bin icon removes the whole card (an expiry date that isn't on the shelf counts as 0)
+      if (!s.pdp) return s;
       return { ...s, pdp: { ...s.pdp, batches: s.pdp.batches.filter((b) => b.date !== a.date) } };
     }
     case 'openCalendar':
       return withSheet(s, { kind: 'calendar', viewY: 2026, viewM: 7, y: 2026, m: 7, d: 17 });
+    case 'editBatchDate': {
+      // pencil on a card: the calendar opens on that card's date
+      const [d, m, y] = a.date.split('.').map(Number);
+      return withSheet(s, { kind: 'calendar', viewY: y, viewM: m - 1, y, m: m - 1, d, edit: a.date });
+    }
     case 'calSelect': {
       const sh = s.pdp?.sheet;
       if (!sh || sh.kind !== 'calendar') return s;
@@ -294,6 +300,15 @@ export function reducer(s: State, a: Action): State {
       const sh = s.pdp?.sheet;
       if (!sh || sh.kind !== 'calendar') return s;
       const date = fmtDate(sh.y, sh.m, sh.d);
+      if (sh.edit) {
+        // move the edited card to the new date, keeping its units (merged if that date already has a card)
+        const moved = s.pdp!.batches.find((b) => b.date === sh.edit)!;
+        if (date === sh.edit) return withSheet(s, null);
+        const rest = s.pdp!.batches.filter((b) => b.date !== sh.edit);
+        const hit = rest.find((b) => b.date === date);
+        const batches = hit ? rest.map((b) => (b.date === date ? { ...b, qty: b.qty + moved.qty } : b)) : s.pdp!.batches.map((b) => (b.date === sh.edit ? { ...b, date } : b));
+        return { ...s, pdp: { ...s.pdp!, batches, sheet: null } };
+      }
       const cur = s.pdp!.batches.find((b) => b.date === date);
       return withSheet(s, { kind: 'qty', date, isNew: !cur, value: cur && cur.qty ? String(cur.qty) : '' });
     }
@@ -485,7 +500,7 @@ export function codeFor(s: State): string {
   }
   if (s.alert) return s.alert.text === ALERTS.network ? 'C8' : 'C9';
   if (s.swipe) return s.recount.chao ? 'C7' : 'C5';
-  if (s.banner) return 'C6';
+  if (s.banner || Object.values(s.recount).some(Boolean)) return 'C6'; // recount: Stock Discrepancy banner on the list
   if (allDone(s)) return 'D6';
   return done.length === 0 ? 'C1' : done.length === 1 ? 'C2' : done.length === 2 ? 'C3' : 'C4';
 }

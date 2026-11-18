@@ -30,7 +30,7 @@ export function SkuList({ s, dispatch }: { s: State; dispatch: Dispatch<Action> 
       <div className="panel">
         <div className={cx('panel__scroll', finished && 'panel__scroll--cta')}>
           <p className={cx('panel__label', todoTab ? 'panel__label--todo' : 'panel__label--done')}>{todoTab ? t('toBeProcessed') : t('processed')}</p>
-          {todoTab && s.banner && (
+          {todoTab && (s.banner || Object.values(s.recount).some(Boolean)) && (
             <div className="discrepancy" role="status">
               <img className="dark-icon" src={icons.alertTriangle} alt="" />
               <p>{rich('discrepancyList')}</p>
