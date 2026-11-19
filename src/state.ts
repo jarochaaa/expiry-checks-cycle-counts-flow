@@ -274,8 +274,8 @@ export function reducer(s: State, a: Action): State {
       return { ...s, hintClosed: true, pdp: { ...s.pdp, batches, banner: false, sheet } };
     }
     case 'deleteBatch': {
-      // the bin icon removes the whole card (an expiry date that isn't on the shelf counts as 0)
-      if (!s.pdp) return s;
+      // only batches the picker added can be removed (the system's own expiry dates stay)
+      if (!s.pdp || LOC_BY_ID[s.pdp.loc].dates.includes(a.date)) return s;
       return { ...s, pdp: { ...s.pdp, batches: s.pdp.batches.filter((b) => b.date !== a.date) } };
     }
     case 'openCalendar':

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SwipeOOS } from '../components/SwipeOOS';
 import type { Dispatch } from 'react';
 import { LOC_BY_ID, PRODUCTS, batchTotal, fmtDate } from '../data';
 import type { Pdp as PdpState } from '../state';
@@ -141,6 +142,7 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
   const loc = LOC_BY_ID[pdp.loc];
   const product = PRODUCTS[loc.product];
   const total = batchTotal(pdp.batches);
+  const [slid, setSlid] = useState<string | null>(null); // added batch whose delete area is open
 
   // After typing a quantity, bring the next empty batch card into view.
   const prev = useRef<{ kind?: string; date?: string; isNew?: boolean }>({});
@@ -206,13 +208,18 @@ export function PdpScreen({ pdp, recount, hintClosed, dispatch }: { pdp: PdpStat
                   <button type="button" className="qty-field" aria-label={`${t('quantity')} ${b.date}`} onClick={() => dispatch({ type: 'openQty', date: b.date })}>
                     {b.qty}
                   </button>
-                  <button type="button" className="batch__icon" aria-label={t('deleteBatchAria')} onClick={() => dispatch({ type: 'deleteBatch', date: b.date })}>
-                    <img src={icons.trash} alt="" />
-                  </button>
                 </div>
               </section>
             );
-            return <div key={b.date}>{card}</div>;
+            // Batches added by the picker (not in the system's list) slide left to be deleted
+            if (loc.dates.includes(b.date)) return <div key={b.date}>{card}</div>;
+            return (
+              <div key={b.date} data-date-wrap={b.date}>
+                <SwipeOOS kind="delete" open={slid === b.date} onOpen={() => setSlid(b.date)} onClose={() => setSlid(null)} onOOS={() => (setSlid(null), dispatch({ type: 'deleteBatch', date: b.date }))}>
+                  {card}
+                </SwipeOOS>
+              </div>
+            );
           })}
         </div>
       </div>
