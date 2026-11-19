@@ -1,0 +1,21 @@
+assets/index-Btz4mh_T.js
+  s_5aa85af76a47b0::t_8ee7fb3a6292dc 9,19
+index.html
+  s_5aa85af76a47b0::t_c668cd3646de33 18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "53da5c8be9df60cbb16ee9b419757f3e4bc08425",
+  "prompts": {},
+  "sessions": {
+    "s_5aa85af76a47b0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e22952d0-3d5d-435d-a457-9d9b70fe22ab",
+        "model": "unknown"
+      },
+      "human_author": "Javier Arocha <arocha.grafico@gmail.com>"
+    }
+  }
+}
